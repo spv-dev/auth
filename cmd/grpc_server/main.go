@@ -6,36 +6,17 @@ import (
 	"log"
 	"net"
 
-	desc "github.com/spv-dev/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
+
+	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
 
 const grpcPort = 50051
 
 type server struct {
 	desc.UnimplementedAuthV1Server
-}
-
-func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "Create", req, ctx)
-	return &desc.CreateResponse{}, nil
-}
-
-func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "Get", req, ctx)
-	return &desc.GetResponse{}, nil
-}
-
-func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "Update", req, ctx)
-	return nil, nil
-}
-
-func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "Delete", req, ctx)
-	return nil, nil
 }
 
 func main() {
@@ -53,4 +34,30 @@ func main() {
 	if err = s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
+}
+
+// CreateUser created a new user
+// Return id of created user
+func (s *server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*desc.CreateUserResponse, error) {
+	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "CreateUser", req, ctx)
+	return &desc.CreateUserResponse{}, nil
+}
+
+// GetUser gets user info by id
+// Return info about user
+func (s *server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.GetUserResponse, error) {
+	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "GetUser", req, ctx)
+	return &desc.GetUserResponse{}, nil
+}
+
+// UpdateUser changes info about user
+func (s *server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
+	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "UpdateUser", req, ctx)
+	return nil, nil
+}
+
+// DeleteUser deletes user by id
+func (s *server) DeleteUser(ctx context.Context, req *desc.DeleteUserRequest) (*emptypb.Empty, error) {
+	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "DeleteUser", req, ctx)
+	return nil, nil
 }

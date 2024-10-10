@@ -5,9 +5,10 @@ import (
 	"log"
 	"time"
 
-	desc "github.com/spv-dev/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
 
 const host = "localhost:50051"
@@ -20,7 +21,7 @@ func main() {
 
 	defer func() {
 		if err := conn.Close(); err != nil {
-			log.Fatalf("failed when close connection: %v", err)
+			log.Fatalf("failed to close connection: %v", err)
 		}
 	}()
 
@@ -28,7 +29,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	respCreate, err := c.Create(ctx, &desc.CreateRequest{
+	respCreate, err := c.CreateUser(ctx, &desc.CreateUserRequest{
 		Info: &desc.UserInfo{
 			Name:  "Max",
 			Email: "max@gmail.com",
@@ -38,25 +39,25 @@ func main() {
 		PasswordConfirm: "pass1",
 	})
 	if err != nil {
-		log.Fatalf("failed when create: %v", err)
+		log.Fatalf("failed to create: %v", err)
 	}
 	log.Printf("Create user: \n%v", respCreate.GetId())
 
-	respUpdate, err := c.Update(ctx, &desc.UpdateRequest{})
+	respUpdate, err := c.UpdateUser(ctx, &desc.UpdateUserRequest{})
 	if err != nil {
-		log.Fatalf("failed when update: %v", err)
+		log.Fatalf("failed to update: %v", err)
 	}
 	log.Printf("Update user ok: \n%v", respUpdate)
 
-	respDelete, err := c.Delete(ctx, &desc.DeleteRequest{})
+	respDelete, err := c.DeleteUser(ctx, &desc.DeleteUserRequest{})
 	if err != nil {
-		log.Fatalf("failed when delete: %v", err)
+		log.Fatalf("failed to delete: %v", err)
 	}
 	log.Printf("Delete user ok: \n%v", respDelete)
 
-	respGet, err := c.Get(ctx, &desc.GetRequest{})
+	respGet, err := c.GetUser(ctx, &desc.GetUserRequest{})
 	if err != nil {
-		log.Fatalf("failed when get: %v", err)
+		log.Fatalf("failed to get: %v", err)
 	}
 	log.Printf("Get user ok: \n%v", respGet)
 }
