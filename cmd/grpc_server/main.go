@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/spv-dev/auth/database"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
 
@@ -31,33 +32,30 @@ func main() {
 
 	log.Printf("server listening at %s", lis.Addr())
 
+	database.InitDB()
+	defer database.CloseDB()
+
 	if err = s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
-// CreateUser created a new user
-// Return id of created user
+// CreateUser создаёт нового пользователя
 func (s *server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*desc.CreateUserResponse, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "CreateUser", req, ctx)
-	return &desc.CreateUserResponse{}, nil
+	return database.CreateUserDB(ctx, req)
 }
 
-// GetUser gets user info by id
-// Return info about user
+// GetUser получает информацию о пользователе по идентификатору
 func (s *server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.GetUserResponse, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "GetUser", req, ctx)
-	return &desc.GetUserResponse{}, nil
+	return database.GetUserDB(ctx, req)
 }
 
-// UpdateUser changes info about user
+// UpdateUser изменяет информацию о пользователе
 func (s *server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "UpdateUser", req, ctx)
-	return nil, nil
+	return database.UpdateUserDB(ctx, req)
 }
 
-// DeleteUser deletes user by id
+// DeleteUser удаляет пользователя по идентификатору
 func (s *server) DeleteUser(ctx context.Context, req *desc.DeleteUserRequest) (*emptypb.Empty, error) {
-	log.Printf("Method: %s\nRequest: %v\nContext: %v\n", "DeleteUser", req, ctx)
-	return nil, nil
+	return database.DeleteUserDB(ctx, req)
 }
