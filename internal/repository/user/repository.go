@@ -9,10 +9,10 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	model "github.com/spv-dev/auth/internal/model"
 	"github.com/spv-dev/auth/internal/repository"
 	"github.com/spv-dev/auth/internal/repository/user/converter"
-	"github.com/spv-dev/auth/internal/repository/user/model"
-	desc "github.com/spv-dev/auth/pkg/user_v1"
+	modelRepo "github.com/spv-dev/auth/internal/repository/user/model"
 )
 
 const (
@@ -37,7 +37,7 @@ func NewRepository(db *pgxpool.Pool) repository.UserRepository {
 }
 
 // CreateUser создаёт нового пользователя в БД
-func (r *repo) CreateUser(ctx context.Context, info *desc.UserInfo, password string) (int64, error) {
+func (r *repo) CreateUser(ctx context.Context, info *model.UserInfo, password string) (int64, error) {
 	builder := sq.Insert(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Columns(nameColumn, emailColumn, roleColumn, passwordColumn).
@@ -60,7 +60,7 @@ func (r *repo) CreateUser(ctx context.Context, info *desc.UserInfo, password str
 }
 
 // GetUser получает информацию о пользователе по идентификатору
-func (r *repo) GetUser(ctx context.Context, id int64) (*desc.User, error) {
+func (r *repo) GetUser(ctx context.Context, id int64) (*model.User, error) {
 	builder := sq.Select(idColumn, nameColumn, emailColumn, createdAtColumn).
 		PlaceholderFormat(sq.Dollar).
 		From(tableName).
@@ -72,7 +72,7 @@ func (r *repo) GetUser(ctx context.Context, id int64) (*desc.User, error) {
 		return nil, err
 	}
 
-	var user model.User
+	var user modelRepo.User
 	if err := r.db.QueryRow(ctx, query, args...).
 		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.CreatedAt); err != nil {
 		return nil, err
@@ -84,18 +84,20 @@ func (r *repo) GetUser(ctx context.Context, id int64) (*desc.User, error) {
 }
 
 // UpdateUser изменяет пользователя в БД
-func (r *repo) UpdateUser(ctx context.Context, id int64, info *desc.UpdateUserInfo) (*emptypb.Empty, error) {
+func (r *repo) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserInfo) (*emptypb.Empty, error) {
 	builder := sq.Update(tableName).
 		PlaceholderFormat(sq.Dollar).
 		Set(updatedAtColumn, time.Now()).
 		Where(sq.Eq{idColumn: id})
 
-	if info != nil && info.Name != nil {
-		builder = builder.Set(nameColumn, info.Name.Value)
+	log.Printf("id: %+v , info: %+v", id, info)
+
+	if info != nil && info.Name.Valid {
+		builder = builder.Set(nameColumn, info.Name.String)
 	}
 
-	if info != nil && info.Role != desc.Roles_UNKNOWN {
-		builder = builder.Set(roleColumn, info.Role)
+	if info != nil && info.Role.Valid {
+		builder = builder.Set(roleColumn, info.Role.Int32)
 	}
 
 	query, args, err := builder.ToSql()
@@ -103,6 +105,7 @@ func (r *repo) UpdateUser(ctx context.Context, id int64, info *desc.UpdateUserIn
 		log.Fatalf("failed to build query: %v", err)
 	}
 
+	log.Printf("query = %s", query)
 	res, err := r.db.Exec(ctx, query, args...)
 	if err != nil {
 		log.Fatalf("failed to update user: %v", err)

@@ -12,14 +12,16 @@ import (
 
 	config "github.com/spv-dev/auth/internal/config"
 	env "github.com/spv-dev/auth/internal/config/env"
-	"github.com/spv-dev/auth/internal/repository"
-	"github.com/spv-dev/auth/internal/repository/user"
+	"github.com/spv-dev/auth/internal/converter"
+	uRepository "github.com/spv-dev/auth/internal/repository/user"
+	"github.com/spv-dev/auth/internal/service"
+	uService "github.com/spv-dev/auth/internal/service/user"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
 
 type server struct {
 	desc.UnimplementedAuthV1Server
-	userRepository repository.UserRepository
+	userService service.UserService
 }
 
 func main() {
@@ -50,11 +52,12 @@ func main() {
 	}
 	defer pool.Close()
 
-	userRepo := user.NewRepository(pool)
+	userRepo := uRepository.NewRepository(pool)
+	userSrv := uService.NewService(userRepo)
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterAuthV1Server(s, &server{userRepository: userRepo})
+	desc.RegisterAuthV1Server(s, &server{userService: userSrv})
 
 	log.Printf("server listening at %s", lis.Addr())
 
@@ -65,7 +68,7 @@ func main() {
 
 // CreateUser создаёт нового пользователя
 func (s *server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*desc.CreateUserResponse, error) {
-	id, err := s.userRepository.CreateUser(ctx, req.GetInfo(), req.Password)
+	id, err := s.userService.CreateUser(ctx, converter.ToUserInfoFromDesc(req.GetInfo()), req.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +83,7 @@ func (s *server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*
 // GetUser получает информацию о пользователе по идентификатору
 func (s *server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.GetUserResponse, error) {
 	id := req.GetId()
-	userObj, err := s.userRepository.GetUser(ctx, id)
+	userObj, err := s.userService.GetUser(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -88,17 +91,14 @@ func (s *server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.G
 	log.Printf("get user by id: %d", id)
 
 	return &desc.GetUserResponse{
-		User: userObj,
+		User: converter.ToUserFromService(userObj),
 	}, nil
 }
 
 // UpdateUser изменяет информацию о пользователе
 func (s *server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
 	id := req.GetId()
-	_, err := s.userRepository.UpdateUser(ctx, id, &desc.UpdateUserInfo{
-		Name: req.Info.Name,
-		Role: desc.Roles(req.Info.Role),
-	})
+	_, err := s.userService.UpdateUser(ctx, id, converter.ToUpdateUserInfoFromDesc(req.GetInfo()))
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +108,10 @@ func (s *server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*
 	return nil, nil
 }
 
-// // DeleteUser удаляет пользователя по идентификатору
+// DeleteUser удаляет пользователя по идентификатору
 func (s *server) DeleteUser(ctx context.Context, req *desc.DeleteUserRequest) (*emptypb.Empty, error) {
 	id := req.GetId()
-	_, err := s.userRepository.DeleteUser(ctx, id)
+	_, err := s.userService.DeleteUser(ctx, id)
 	if err != nil {
 		return nil, err
 	}

@@ -1,32 +1,26 @@
 package converter
 
 import (
-	"google.golang.org/protobuf/types/known/timestamppb"
-
-	"github.com/spv-dev/auth/internal/repository/user/model"
-	desc "github.com/spv-dev/auth/pkg/user_v1"
+	"github.com/spv-dev/auth/internal/model"
+	modelRepo "github.com/spv-dev/auth/internal/repository/user/model"
 )
 
 // ToUserFromRepo преобразует model.User в User
-func ToUserFromRepo(user *model.User) *desc.User {
-	var updatedAt *timestamppb.Timestamp
-	if user.UpdatedAt.Valid {
-		updatedAt = timestamppb.New(user.UpdatedAt.Time)
-	}
+func ToUserFromRepo(user *modelRepo.User) *model.User {
 
-	return &desc.User{
-		Id:        user.ID,
+	return &model.User{
+		ID:        user.ID,
 		Info:      ToUserInfoFromRepo(user.Info),
-		CreatedAt: timestamppb.New(user.CreatedAt),
-		UpdatedAt: updatedAt,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
 	}
 }
 
 // ToUserInfoFromRepo преобразует model.Info в UserInfo
-func ToUserInfoFromRepo(info model.Info) *desc.UserInfo {
-	return &desc.UserInfo{
+func ToUserInfoFromRepo(info modelRepo.UserInfo) model.UserInfo {
+	return model.UserInfo{
 		Name:  info.Name,
 		Email: info.Email,
-		Role:  desc.Roles(info.Role),
+		Role:  info.Role,
 	}
 }
