@@ -11,13 +11,3 @@ func Load(path string) error {
 
 	return nil
 }
-
-// GRPCConfig интерфейс для конфигурации gRPC
-type GRPCConfig interface {
-	Address() string
-}
-
-// PGConfig интерфейс для конфигурации Postgres
-type PGConfig interface {
-	DSN() string
-}

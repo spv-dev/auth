@@ -3,15 +3,16 @@ package config
 import (
 	"errors"
 	"os"
-
-	"github.com/spv-dev/auth/internal/config"
 )
 
 const (
 	dsnEnvName = "PG_DSN"
 )
 
-var _ config.PGConfig = (*pgConfig)(nil)
+// PGConfig интерфейс для конфигурации Postgres
+type PGConfig interface {
+	DSN() string
+}
 
 type pgConfig struct {
 	dsn string

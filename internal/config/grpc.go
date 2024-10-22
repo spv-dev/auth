@@ -4,8 +4,6 @@ import (
 	"errors"
 	"net"
 	"os"
-
-	"github.com/spv-dev/auth/internal/config"
 )
 
 const (
@@ -13,7 +11,10 @@ const (
 	grpcPortEnvName = "GRPC_PORT"
 )
 
-var _ config.GRPCConfig = (*grpcConfig)(nil)
+// GRPCConfig интерфейс для конфигурации gRPC
+type GRPCConfig interface {
+	Address() string
+}
 
 type grpcConfig struct {
 	host string
