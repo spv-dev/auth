@@ -8,21 +8,14 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	"google.golang.org/protobuf/types/known/emptypb"
 
+	userAPI "github.com/spv-dev/auth/internal/api/user"
 	config "github.com/spv-dev/auth/internal/config"
 	env "github.com/spv-dev/auth/internal/config/env"
-	"github.com/spv-dev/auth/internal/converter"
 	uRepository "github.com/spv-dev/auth/internal/repository/user"
-	"github.com/spv-dev/auth/internal/service"
 	uService "github.com/spv-dev/auth/internal/service/user"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
-
-type server struct {
-	desc.UnimplementedAuthV1Server
-	userService service.UserService
-}
 
 func main() {
 	ctx := context.Background()
@@ -57,66 +50,11 @@ func main() {
 
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterAuthV1Server(s, &server{userService: userSrv})
+	desc.RegisterAuthV1Server(s, userAPI.NewServer(userSrv))
 
 	log.Printf("server listening at %s", lis.Addr())
 
 	if err = s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
-}
-
-// CreateUser создаёт нового пользователя
-func (s *server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*desc.CreateUserResponse, error) {
-	id, err := s.userService.CreateUser(ctx, converter.ToUserInfoFromDesc(req.GetInfo()), req.Password)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("inserted user with id: %d", id)
-
-	return &desc.CreateUserResponse{
-		Id: id,
-	}, nil
-}
-
-// GetUser получает информацию о пользователе по идентификатору
-func (s *server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.GetUserResponse, error) {
-	id := req.GetId()
-	userObj, err := s.userService.GetUser(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("get user by id: %d", id)
-
-	return &desc.GetUserResponse{
-		User: converter.ToUserFromService(userObj),
-	}, nil
-}
-
-// UpdateUser изменяет информацию о пользователе
-func (s *server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
-	id := req.GetId()
-	_, err := s.userService.UpdateUser(ctx, id, converter.ToUpdateUserInfoFromDesc(req.GetInfo()))
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("updated user user with id: %d", id)
-
-	return nil, nil
-}
-
-// DeleteUser удаляет пользователя по идентификатору
-func (s *server) DeleteUser(ctx context.Context, req *desc.DeleteUserRequest) (*emptypb.Empty, error) {
-	id := req.GetId()
-	_, err := s.userService.DeleteUser(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("delete user with id: %d", id)
-
-	return nil, nil
 }
