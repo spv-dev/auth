@@ -7,20 +7,27 @@ import (
 	"sync"
 )
 
+// globalCloser глобальный объект - чтобы можно было применять из
+// разных мест приложения
+// Скрыт. Для доступа используются функции Add, Wait, CloseAll
 var globalCloser = New()
 
+// Add функция для доступа к globalCloser.Add()
 func Add(f ...func() error) {
 	globalCloser.Add(f...)
 }
 
+// Wait функция для доступа к globalCloser.Wait()
 func Wait() {
 	globalCloser.Wait()
 }
 
+// CloseAll функция для доступа к globalCloser.CloseAll()
 func CloseAll() {
 	globalCloser.CloseAll()
 }
 
+// Closer структура для закрытия всех инициализированных сервисов
 type Closer struct {
 	mu    sync.Mutex
 	onse  sync.Once
@@ -28,6 +35,7 @@ type Closer struct {
 	funcs []func() error
 }
 
+// New создаёт новый объект Closer
 func New(sig ...os.Signal) *Closer {
 	c := &Closer{done: make(chan struct{})}
 	if len(sig) > 0 {
@@ -42,16 +50,19 @@ func New(sig ...os.Signal) *Closer {
 	return c
 }
 
+// Add добавляет новую функцию закрытия
 func (c *Closer) Add(f ...func() error) {
 	c.mu.Lock()
 	c.funcs = append(c.funcs, f...)
 	c.mu.Unlock()
 }
 
+// Wait блокирует вызов
 func (c *Closer) Wait() {
 	<-c.done
 }
 
+// CloseAll вызывает все функции закрытия
 func (c *Closer) CloseAll() {
 	c.onse.Do(func() {
 		defer close(c.done)

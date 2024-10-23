@@ -5,13 +5,13 @@ import (
 	"log"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+
 	"github.com/spv-dev/auth/internal/api/user"
 	"github.com/spv-dev/auth/internal/closer"
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/repository"
-	"github.com/spv-dev/auth/internal/service"
-
 	userRepository "github.com/spv-dev/auth/internal/repository/user"
+	"github.com/spv-dev/auth/internal/service"
 	userService "github.com/spv-dev/auth/internal/service/user"
 )
 
@@ -57,6 +57,8 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 
 func (s *serviceProvider) PgPool(ctx context.Context) *pgxpool.Pool {
 	if s.pgPool == nil {
+		log.Printf("|log| createnew pg pool %v\n", s)
+		log.Printf("|log| DSN = %v", s.PGConfig().DSN())
 		pool, err := pgxpool.Connect(ctx, s.PGConfig().DSN())
 		if err != nil {
 			log.Fatalf("failed to connect to database : %v", err)
@@ -70,6 +72,8 @@ func (s *serviceProvider) PgPool(ctx context.Context) *pgxpool.Pool {
 			pool.Close()
 			return nil
 		})
+
+		s.pgPool = pool
 	}
 
 	return s.pgPool
@@ -77,6 +81,7 @@ func (s *serviceProvider) PgPool(ctx context.Context) *pgxpool.Pool {
 
 func (s *serviceProvider) UserRepository(ctx context.Context) repository.UserRepository {
 	if s.userRepository == nil {
+		log.Printf("|log| createnewuserrepository\n")
 		s.userRepository = userRepository.NewRepository(s.PgPool(ctx))
 	}
 

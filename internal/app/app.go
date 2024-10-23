@@ -5,19 +5,22 @@ import (
 	"log"
 	"net"
 
-	"github.com/spv-dev/auth/internal/closer"
-	"github.com/spv-dev/auth/internal/config"
-	desc "github.com/spv-dev/auth/pkg/user_v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/spv-dev/auth/internal/closer"
+	"github.com/spv-dev/auth/internal/config"
+	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
 
+// App структура приложения
 type App struct {
 	serviceProvider *serviceProvider
 	grpcServer      *grpc.Server
 }
 
+// NewApp инициализизует зависимости и создаёт экземпляр структуры приложения
 func NewApp(ctx context.Context) (*App, error) {
 	a := &App{}
 
@@ -29,6 +32,7 @@ func NewApp(ctx context.Context) (*App, error) {
 	return a, nil
 }
 
+// Run запускает gRPC сервер
 func (a *App) Run() error {
 	defer func() {
 		closer.CloseAll()
@@ -79,7 +83,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 }
 
 func (a *App) runGRPCServer() error {
-	log.Printf("GRPC server is runnign on %v", a.serviceProvider)
+	log.Printf("GRPC server is runnign on %v", a.serviceProvider.GRPCConfig().Address())
 
 	list, err := net.Listen("tcp", a.serviceProvider.GRPCConfig().Address())
 

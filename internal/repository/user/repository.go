@@ -33,6 +33,7 @@ type repo struct {
 
 // NewRepository получает соединение с БД
 func NewRepository(db *pgxpool.Pool) repository.UserRepository {
+	log.Printf("|log| newRepository = %v", db)
 	return &repo{db: db}
 }
 
@@ -49,6 +50,9 @@ func (r *repo) CreateUser(ctx context.Context, info *model.UserInfo, password st
 		return 0, err
 	}
 
+	log.Printf("|log| query = %s", query)
+	log.Printf("|log| r = %v", r)
+	log.Printf("|log| db = %v", r.db)
 	var userID int64
 	if err = r.db.QueryRow(ctx, query, args...).Scan(&userID); err != nil {
 		return 0, err
