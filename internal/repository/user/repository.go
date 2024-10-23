@@ -6,9 +6,9 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/spv-dev/auth/internal/client/db"
 	model "github.com/spv-dev/auth/internal/model"
 	"github.com/spv-dev/auth/internal/repository"
 	"github.com/spv-dev/auth/internal/repository/user/converter"
@@ -28,12 +28,11 @@ const (
 )
 
 type repo struct {
-	db *pgxpool.Pool
+	db db.Client
 }
 
 // NewRepository получает соединение с БД
-func NewRepository(db *pgxpool.Pool) repository.UserRepository {
-	log.Printf("|log| newRepository = %v", db)
+func NewRepository(db db.Client) repository.UserRepository {
 	return &repo{db: db}
 }
 
@@ -50,11 +49,13 @@ func (r *repo) CreateUser(ctx context.Context, info *model.UserInfo, password st
 		return 0, err
 	}
 
-	log.Printf("|log| query = %s", query)
-	log.Printf("|log| r = %v", r)
-	log.Printf("|log| db = %v", r.db)
+	q := db.Query{
+		QueryRaw: query,
+		Name:     "user_repository.Create",
+	}
+
 	var userID int64
-	if err = r.db.QueryRow(ctx, query, args...).Scan(&userID); err != nil {
+	if err = r.db.DB().QueryRowContext(ctx, q, args...).Scan(&userID); err != nil {
 		return 0, err
 	}
 
@@ -76,9 +77,13 @@ func (r *repo) GetUser(ctx context.Context, id int64) (*model.User, error) {
 		return nil, err
 	}
 
+	q := db.Query{
+		QueryRaw: query,
+		Name:     "user_repository.Get",
+	}
+
 	var user modelRepo.User
-	if err := r.db.QueryRow(ctx, query, args...).
-		Scan(&user.ID, &user.Info.Name, &user.Info.Email, &user.CreatedAt); err != nil {
+	if err := r.db.DB().ScanOneContext(ctx, &user, q, args...); err != nil {
 		return nil, err
 	}
 
@@ -109,8 +114,13 @@ func (r *repo) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserI
 		log.Fatalf("failed to build query: %v", err)
 	}
 
+	q := db.Query{
+		QueryRaw: query,
+		Name:     "user_repository.Update",
+	}
+
 	log.Printf("query = %s", query)
-	res, err := r.db.Exec(ctx, query, args...)
+	res, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		log.Fatalf("failed to update user: %v", err)
 	}
@@ -131,7 +141,11 @@ func (r *repo) DeleteUser(ctx context.Context, id int64) (*emptypb.Empty, error)
 		log.Fatalf("failed to build query: %v", err)
 	}
 
-	res, err := r.db.Exec(ctx, query, args...)
+	q := db.Query{
+		QueryRaw: query,
+		Name:     "user_repository.Update",
+	}
+	res, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
 		log.Fatalf("failed to delete user: %v", err)
 	}
