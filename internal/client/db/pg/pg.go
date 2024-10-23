@@ -14,6 +14,13 @@ import (
 	"github.com/spv-dev/auth/internal/client/db/prettier"
 )
 
+type key string
+
+const (
+	// TxKey константа
+	TxKey key = "tx"
+)
+
 type pg struct {
 	dbc *pgxpool.Pool
 }
@@ -34,6 +41,11 @@ func (p *pg) Close() {
 func (p *pg) ExecContext(ctx context.Context, q db.Query, args ...interface{}) (pgconn.CommandTag, error) {
 	logQuery(ctx, q, args...)
 
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.Exec(ctx, q.QueryRaw, args...)
+	}
+
 	return p.dbc.Exec(ctx, q.QueryRaw, args...)
 }
 
@@ -46,12 +58,22 @@ func (p *pg) Ping(ctx context.Context) error {
 func (p *pg) QueryContext(ctx context.Context, q db.Query, args ...interface{}) (pgx.Rows, error) {
 	logQuery(ctx, q, args...)
 
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.Query(ctx, q.QueryRaw, args...)
+	}
+
 	return p.dbc.Query(ctx, q.QueryRaw, args...)
 }
 
 // QueryRowContext implements db.DB.
 func (p *pg) QueryRowContext(ctx context.Context, q db.Query, args ...interface{}) pgx.Row {
 	logQuery(ctx, q, args...)
+
+	tx, ok := ctx.Value(TxKey).(pgx.Tx)
+	if ok {
+		return tx.QueryRow(ctx, q.QueryRaw, args...)
+	}
 
 	return p.dbc.QueryRow(ctx, q.QueryRaw, args...)
 }
@@ -78,6 +100,16 @@ func (p *pg) ScanOneContext(ctx context.Context, dest interface{}, q db.Query, a
 	}
 
 	return pgxscan.ScanOne(dest, row)
+}
+
+// BeginTx начала транзакции
+func (p *pg) BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error) {
+	return p.dbc.BeginTx(ctx, txOptions)
+}
+
+// MakeContextTx создание контекста для транзакций
+func MakeContextTx(ctx context.Context, tx pgx.Tx) context.Context {
+	return context.WithValue(ctx, TxKey, tx)
 }
 
 func logQuery(ctx context.Context, q db.Query, args ...interface{}) {

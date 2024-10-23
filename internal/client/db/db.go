@@ -7,10 +7,18 @@ import (
 	"github.com/jackc/pgx/v4"
 )
 
+// Handler - нункция, которая выполняется в транзакции
+type Handler func(ctx context.Context) error
+
 // Client интерфейс для работы с БД через обёртки
 type Client interface {
 	DB() DB
 	Close() error
+}
+
+// TxManager менеджер транзакций, который выполняет указанный обработчик в транзакции
+type TxManager interface {
+	ReadCommited(ctx context.Context, f Handler) error
 }
 
 // Query структура запроса
@@ -19,6 +27,11 @@ type Client interface {
 type Query struct {
 	Name     string
 	QueryRaw string
+}
+
+// Transactor интерфейс для работы с транзакциями
+type Transactor interface {
+	BeginTx(ctx context.Context, txOptions pgx.TxOptions) (pgx.Tx, error)
 }
 
 // SQLExecer интерфейс объединяет обёртки для работы с БД
@@ -48,6 +61,7 @@ type Pinger interface {
 // DB интерфейс базы данных
 type DB interface {
 	SQLExecer
+	Transactor
 	Pinger
 	Close()
 }
