@@ -13,7 +13,8 @@ import (
 // UpdateUser изменяет информацию о пользователе
 func (s *Server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
 	id := req.GetId()
-	_, err := s.userService.UpdateUser(ctx, id, converter.ToUpdateUserInfoFromDesc(req.GetInfo()))
+	userInfo := converter.ToUpdateUserInfoFromDesc(req.GetInfo())
+	err := s.userService.UpdateUser(ctx, id, &userInfo)
 	if err != nil {
 		return nil, err
 	}

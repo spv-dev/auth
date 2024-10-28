@@ -18,7 +18,9 @@ func (s *Server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.G
 
 	log.Printf("get user by id: %d", id)
 
+	user := converter.ToUserFromService(&userObj)
+
 	return &desc.GetUserResponse{
-		User: converter.ToUserFromService(userObj),
+		User: &user,
 	}, nil
 }
