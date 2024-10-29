@@ -13,8 +13,8 @@ import (
 // DeleteUser удаляет пользователя в БД по идентификатору
 func (r *repo) DeleteUser(ctx context.Context, id int64) error {
 	builder := sq.Delete(tableName).
-		PlaceholderFormat(sq.Dollar).
-		Where(sq.Eq{idColumn: id})
+		Where(sq.Eq{idColumn: id}).
+		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := builder.ToSql()
 	if err != nil {

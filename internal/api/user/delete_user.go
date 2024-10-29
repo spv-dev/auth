@@ -11,13 +11,12 @@ import (
 
 // DeleteUser удаляет пользователя по идентификатору
 func (s *Server) DeleteUser(ctx context.Context, req *desc.DeleteUserRequest) (*emptypb.Empty, error) {
-	id := req.GetId()
-	err := s.userService.DeleteUser(ctx, id)
+	err := s.userService.DeleteUser(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("delete user with id: %d", id)
+	log.Printf("delete user with id: %d", req.GetId())
 
 	return nil, nil
 }

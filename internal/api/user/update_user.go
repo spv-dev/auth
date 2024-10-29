@@ -12,14 +12,13 @@ import (
 
 // UpdateUser изменяет информацию о пользователе
 func (s *Server) UpdateUser(ctx context.Context, req *desc.UpdateUserRequest) (*emptypb.Empty, error) {
-	id := req.GetId()
-	userInfo := converter.ToUpdateUserInfoFromDesc(req.GetInfo())
-	err := s.userService.UpdateUser(ctx, id, &userInfo)
+
+	err := s.userService.UpdateUser(ctx, req.GetId(), (converter.ToUpdateUserInfoFromDesc(req.GetInfo())))
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("updated user user with id: %d", id)
+	log.Printf("updated user user with id: %d", req.GetId())
 
 	return nil, nil
 }

@@ -15,12 +15,14 @@ func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password st
 	}
 
 	// проверки
-	if err := validator.CheckName(info.Name); err != nil {
+	if err := validator.CheckName(&info.Name); err != nil {
 		return 0, err
 	}
-	if err := validator.CheckEmail(info.Email); err != nil {
+
+	if err := validator.CheckEmail(&info.Email); err != nil {
 		return 0, err
 	}
+
 	if err := validator.CheckPassword(password); err != nil {
 		return 0, err
 	}
