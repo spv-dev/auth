@@ -15,7 +15,7 @@ func (s *serv) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserI
 	}
 
 	// проверки
-	if err := validator.CheckName(info.Name); err != nil {
+	if err := validator.CheckName(*info.Name); err != nil {
 		return err
 	}
 

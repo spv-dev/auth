@@ -16,11 +16,12 @@ const (
 )
 
 // CheckName проверки имени пользователя
-func CheckName(name *string) error {
-	if name == nil || len(*name) == 0 {
+func CheckName(name string) error {
+	if len(name) == 0 {
 		return fmt.Errorf(errUserNameIsEmpty)
 	}
-	if len(*name) > 255 {
+
+	if len(name) > 255 {
 		return fmt.Errorf(errUserNameIsTooLong)
 	}
 
@@ -34,16 +35,19 @@ func isValidEmail(email string) bool {
 }
 
 // CheckEmail проверки email пользователя
-func CheckEmail(email *string) error {
-	if email == nil || len(*email) == 0 {
+func CheckEmail(email string) error {
+	if len(email) == 0 {
 		return fmt.Errorf(errEmailIsEmpty)
 	}
-	if len(*email) > 255 {
+
+	if len(email) > 255 {
 		return fmt.Errorf(errEmailIsTooLong)
 	}
-	if !isValidEmail(*email) {
+
+	if !isValidEmail(email) {
 		return fmt.Errorf(errEmailIsNotValid)
 	}
+
 	return nil
 }
 
@@ -52,8 +56,10 @@ func CheckPassword(password string) error {
 	if len(password) == 0 {
 		return fmt.Errorf(errPIsEmpty)
 	}
+
 	if len(password) < 8 {
 		return fmt.Errorf(errPIsTooSmall)
 	}
+
 	return nil
 }
