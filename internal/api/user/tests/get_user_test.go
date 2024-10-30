@@ -12,6 +12,7 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/spv-dev/auth/internal/api/user"
+	"github.com/spv-dev/auth/internal/converter"
 	"github.com/spv-dev/auth/internal/model"
 	"github.com/spv-dev/auth/internal/service"
 	serviceMocks "github.com/spv-dev/auth/internal/service/mocks"
@@ -30,12 +31,11 @@ func TestGetUser(t *testing.T) {
 		ctx = context.Background()
 		mc  = minimock.NewController(t)
 
-		id     = gofakeit.Int64()
-		name   = gofakeit.Name()
-		email  = gofakeit.Email()
-		role   = desc.Roles_USER
-		roleId = desc.Roles_value["USER"]
-		dt     = time.Now()
+		id    = gofakeit.Int64()
+		name  = gofakeit.Name()
+		email = gofakeit.Email()
+		role  = desc.Roles_USER
+		dt    = time.Now()
 
 		serviceErr = fmt.Errorf("service error")
 
@@ -50,7 +50,7 @@ func TestGetUser(t *testing.T) {
 			Info: model.UserInfo{
 				Name:  name,
 				Email: email,
-				Role:  roleId,
+				Role:  converter.ConvertRoleFromDesc(role),
 			},
 		}
 

@@ -3,6 +3,7 @@ package converter
 import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/spv-dev/auth/internal/constants"
 	"github.com/spv-dev/auth/internal/model"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
@@ -30,7 +31,7 @@ func ToUserInfoFromService(info model.UserInfo) *desc.UserInfo {
 	return &desc.UserInfo{
 		Name:  info.Name,
 		Email: info.Email,
-		Role:  desc.Roles(info.Role),
+		Role:  ConvertRoleFromModel(info.Role),
 	}
 }
 
@@ -42,7 +43,7 @@ func ToUserInfoFromDesc(info *desc.UserInfo) *model.UserInfo {
 	return &model.UserInfo{
 		Name:  info.Name,
 		Email: info.Email,
-		Role:  int32(info.Role),
+		Role:  ConvertRoleFromDesc(info.Role),
 	}
 }
 
@@ -57,8 +58,17 @@ func ToUpdateUserInfoFromDesc(info *desc.UpdateUserInfo) *model.UpdateUserInfo {
 		userInfo.Name = &info.Name.Value
 	}
 	if info.Role != 0 {
-		userInfo.Name = &info.Name.Value
+		r := ConvertRoleFromDesc(info.Role)
+		userInfo.Role = &r
 	}
 
 	return &userInfo
+}
+
+func ConvertRoleFromDesc(role desc.Roles) constants.Roles {
+	return constants.Roles(int32(role))
+}
+
+func ConvertRoleFromModel(role constants.Roles) desc.Roles {
+	return desc.Roles(int32(role))
 }

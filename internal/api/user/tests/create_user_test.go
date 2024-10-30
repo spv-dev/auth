@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/spv-dev/auth/internal/api/user"
+	"github.com/spv-dev/auth/internal/converter"
 	model "github.com/spv-dev/auth/internal/model"
 	"github.com/spv-dev/auth/internal/service"
 	serviceMocks "github.com/spv-dev/auth/internal/service/mocks"
@@ -48,7 +49,7 @@ func TestCreateUser(t *testing.T) {
 		info = &model.UserInfo{
 			Name:  name,
 			Email: email,
-			Role:  int32(role),
+			Role:  converter.ConvertRoleFromDesc(role),
 		}
 
 		res = &desc.CreateUserResponse{

@@ -12,6 +12,8 @@ import (
 	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	"github.com/spv-dev/auth/internal/api/user"
+	"github.com/spv-dev/auth/internal/constants"
+	"github.com/spv-dev/auth/internal/converter"
 	model "github.com/spv-dev/auth/internal/model"
 	"github.com/spv-dev/auth/internal/service"
 	serviceMocks "github.com/spv-dev/auth/internal/service/mocks"
@@ -32,7 +34,7 @@ func TestUpdateUser(t *testing.T) {
 
 		id   = gofakeit.Int64()
 		name = gofakeit.Name()
-		//role   = desc.Roles_USER
+		role = desc.Roles_USER
 		//roleId = desc.Roles_value["USER"]
 
 		serviceErr = fmt.Errorf("service error")
@@ -41,15 +43,16 @@ func TestUpdateUser(t *testing.T) {
 			Id: id,
 			Info: &desc.UpdateUserInfo{
 				Name: wrapperspb.String(name),
-				//Role: role,
+				Role: role,
 			},
 		}
 
 		info = &model.UpdateUserInfo{
 			Name: &name,
-			//Role: &roleId,
+			Role: new(constants.Roles),
 		}
 	)
+	*info.Role = converter.ConvertRoleFromDesc(role)
 
 	defer t.Cleanup(mc.Finish)
 
