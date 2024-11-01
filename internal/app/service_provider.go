@@ -4,11 +4,12 @@ import (
 	"context"
 	"log"
 
+	"github.com/spv-dev/platform_common/pkg/closer"
+	"github.com/spv-dev/platform_common/pkg/db"
+	"github.com/spv-dev/platform_common/pkg/db/pg"
+	"github.com/spv-dev/platform_common/pkg/db/transaction"
+
 	"github.com/spv-dev/auth/internal/api/user"
-	"github.com/spv-dev/auth/internal/client/db"
-	"github.com/spv-dev/auth/internal/client/db/pg"
-	"github.com/spv-dev/auth/internal/client/db/transaction"
-	"github.com/spv-dev/auth/internal/closer"
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/repository"
 	userRepository "github.com/spv-dev/auth/internal/repository/user"

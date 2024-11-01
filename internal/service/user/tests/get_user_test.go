@@ -8,9 +8,9 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
+	"github.com/spv-dev/platform_common/pkg/db"
 	"github.com/stretchr/testify/require"
 
-	"github.com/spv-dev/auth/internal/client/db"
 	dbMock "github.com/spv-dev/auth/internal/client/db/mocks"
 	"github.com/spv-dev/auth/internal/constants"
 	"github.com/spv-dev/auth/internal/model"

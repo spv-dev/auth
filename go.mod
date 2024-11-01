@@ -3,6 +3,7 @@ module github.com/spv-dev/auth
 go 1.22.2
 
 require (
+	github.com/gojuno/minimock/v3 v3.4.1
 	github.com/jackc/pgconn v1.14.3
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
@@ -10,7 +11,6 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/gojuno/minimock/v3 v3.4.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -32,6 +32,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
+	github.com/spv-dev/platform_common v0.0.0-20241101094528-32e28621e824
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/net v0.30.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect

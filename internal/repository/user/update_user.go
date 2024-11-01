@@ -7,8 +7,8 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/spv-dev/platform_common/pkg/db"
 
-	"github.com/spv-dev/auth/internal/client/db"
 	model "github.com/spv-dev/auth/internal/model"
 )
 

@@ -2,7 +2,7 @@
 
 package mocks
 
-//go:generate minimock -i github.com/spv-dev/auth/internal/client/db.TxManager -o tx_manager_minimock.go -n TxManagerMock -p mocks
+//go:generate minimock -i github.com/spv-dev/platform_common/db.TxManager -o tx_manager_minimock.go -n TxManagerMock -p mocks
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	mm_time "time"
 
 	"github.com/gojuno/minimock/v3"
-	mm_db "github.com/spv-dev/auth/internal/client/db"
+	mm_db "github.com/spv-dev/platform_common/pkg/db"
 )
 
 // TxManagerMock implements mm_db.TxManager
