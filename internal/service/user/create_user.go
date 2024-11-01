@@ -35,11 +35,6 @@ func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password st
 			return errTx
 		}
 
-		_, errTx = s.userRepository.GetUser(ctx, id)
-		if errTx != nil {
-			return errTx
-		}
-
 		return nil
 	})
 

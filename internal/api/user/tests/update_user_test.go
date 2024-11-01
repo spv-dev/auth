@@ -21,6 +21,7 @@ import (
 )
 
 func TestUpdateUser(t *testing.T) {
+	t.Parallel()
 	type userServiceMockFunc func(mc *minimock.Controller) service.UserService
 
 	type args struct {
@@ -35,7 +36,6 @@ func TestUpdateUser(t *testing.T) {
 		id   = gofakeit.Int64()
 		name = gofakeit.Name()
 		role = desc.Roles_USER
-		//roleId = desc.Roles_value["USER"]
 
 		serviceErr = fmt.Errorf("service error")
 
@@ -53,8 +53,6 @@ func TestUpdateUser(t *testing.T) {
 		}
 	)
 	*info.Role = converter.ConvertRoleFromDesc(role)
-
-	defer t.Cleanup(mc.Finish)
 
 	tests := []struct {
 		name            string
@@ -96,6 +94,7 @@ func TestUpdateUser(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			userServiceMock := tt.userServiceMock(mc)
 			api := user.NewServer(userServiceMock)
 
