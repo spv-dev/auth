@@ -4,7 +4,6 @@ go 1.22.2
 
 require (
 	github.com/gojuno/minimock/v3 v3.4.1
-	github.com/jackc/pgconn v1.14.3
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.34.2
 )
@@ -12,6 +11,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
+	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
@@ -28,10 +28,11 @@ require (
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
-	github.com/georgysavva/scany v1.2.2
-	github.com/jackc/pgx/v4 v4.18.3
+	github.com/georgysavva/scany v1.2.2 // indirect
+	github.com/gomodule/redigo v1.9.2
+	github.com/jackc/pgx/v4 v4.18.3 // indirect
 	github.com/joho/godotenv v1.5.1
-	github.com/pkg/errors v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spv-dev/platform_common v0.0.0-20241101094528-32e28621e824
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/net v0.30.0 // indirect

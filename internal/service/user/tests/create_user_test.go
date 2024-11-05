@@ -22,6 +22,7 @@ func TestCreateUser(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
+	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
 
 	type args struct {
 		ctx      context.Context
@@ -63,6 +64,7 @@ func TestCreateUser(t *testing.T) {
 		err                error
 		userRepositoryMock userRepositoryMockFunc
 		dbMockFunc         txManagerMockFunc
+		userCacheMock      userCacheMockFunc
 	}{
 		{
 			name: "Success Create User",
@@ -86,6 +88,9 @@ func TestCreateUser(t *testing.T) {
 
 				return mock
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Empty Info",
@@ -102,6 +107,9 @@ func TestCreateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Empty Password",
@@ -117,6 +125,9 @@ func TestCreateUser(t *testing.T) {
 			},
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
+			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
 			},
 		},
 		{
@@ -138,6 +149,9 @@ func TestCreateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Email",
@@ -158,6 +172,9 @@ func TestCreateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Email",
@@ -177,6 +194,9 @@ func TestCreateUser(t *testing.T) {
 			},
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
+			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
 			},
 		},
 		{
@@ -201,6 +221,9 @@ func TestCreateUser(t *testing.T) {
 
 				return mock
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 	}
 
@@ -210,7 +233,8 @@ func TestCreateUser(t *testing.T) {
 			t.Parallel()
 			userRepoMock := tt.userRepositoryMock(mc)
 			txManagerMock := tt.dbMockFunc(mc)
-			service := user.NewService(userRepoMock, txManagerMock)
+			userCacheMock := tt.userCacheMock(mc)
+			service := user.NewService(userRepoMock, txManagerMock, userCacheMock)
 
 			res, err := service.CreateUser(tt.args.ctx, tt.args.req, tt.args.password)
 			require.Equal(t, tt.err, err)

@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -23,6 +24,7 @@ func TestGetUser(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
+	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
 
 	type args struct {
 		ctx context.Context
@@ -74,6 +76,7 @@ func TestGetUser(t *testing.T) {
 		err                error
 		userRepositoryMock userRepositoryMockFunc
 		dbMockFunc         txManagerMockFunc
+		userCacheMock      userCacheMockFunc
 	}{
 		{
 			name: "Success Get User",
@@ -90,6 +93,12 @@ func TestGetUser(t *testing.T) {
 			},
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
+			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				mock := repoMocks.NewUserCacheMock(t)
+				mock.GetUserMock.Expect(ctx, id).Return(model.User{}, errors.New("No cache"))
+				mock.AddUserMock.Expect(ctx, id, &u).Return(nil)
+				return mock
 			},
 		},
 
@@ -109,6 +118,11 @@ func TestGetUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				mock := repoMocks.NewUserCacheMock(t)
+				mock.GetUserMock.Expect(ctx, id).Return(model.User{}, errors.New("No cache"))
+				return mock
+			},
 		},
 	}
 
@@ -118,7 +132,8 @@ func TestGetUser(t *testing.T) {
 			t.Parallel()
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			txManager := tt.dbMockFunc(mc)
-			service := user.NewService(userRepositoryMock, txManager)
+			cache := tt.userCacheMock(mc)
+			service := user.NewService(userRepositoryMock, txManager, cache)
 
 			res, err := service.GetUser(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)

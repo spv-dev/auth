@@ -22,6 +22,7 @@ func TestUpdateUser(t *testing.T) {
 	t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
+	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
 
 	type args struct {
 		ctx context.Context
@@ -56,6 +57,7 @@ func TestUpdateUser(t *testing.T) {
 		err                error
 		userRepositoryMock userRepositoryMockFunc
 		dbMockFunc         txManagerMockFunc
+		userCacheMock      userCacheMockFunc
 	}{
 		{
 			name: "Success Update User",
@@ -73,6 +75,9 @@ func TestUpdateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Empty data",
@@ -87,6 +92,9 @@ func TestUpdateUser(t *testing.T) {
 			},
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
+			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
 			},
 		},
 		{
@@ -106,6 +114,9 @@ func TestUpdateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 		{
 			name: "Error Update User",
@@ -123,6 +134,9 @@ func TestUpdateUser(t *testing.T) {
 			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
+			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+				return repoMocks.NewUserCacheMock(t)
+			},
 		},
 	}
 
@@ -132,7 +146,8 @@ func TestUpdateUser(t *testing.T) {
 			t.Parallel()
 			userRepositoryMock := tt.userRepositoryMock(mc)
 			txManager := tt.dbMockFunc(mc)
-			service := user.NewService(userRepositoryMock, txManager)
+			userCache := tt.userCacheMock(mc)
+			service := user.NewService(userRepositoryMock, txManager, userCache)
 
 			err := service.UpdateUser(tt.args.ctx, tt.args.id, tt.args.req)
 			require.Equal(t, tt.err, err)

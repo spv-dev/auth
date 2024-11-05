@@ -2,7 +2,7 @@
 
 package mocks
 
-//go:generate minimock -i github.com/spv-dev/platform_common/db.TxManager -o tx_manager_minimock.go -n TxManagerMock -p mocks
+//go:generate minimock -i github.com/spv-dev/platform_common/pkg/db.TxManager -o tx_manager_minimock.go -n TxManagerMock -p mocks
 
 import (
 	"context"

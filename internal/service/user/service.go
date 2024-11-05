@@ -9,14 +9,17 @@ import (
 
 type serv struct {
 	userRepository repository.UserRepository
+	userCache      repository.UserCache
 	txManager      db.TxManager
 }
 
 // NewService создаёт новый сервис
 func NewService(userRepository repository.UserRepository,
-	txManager db.TxManager) service.UserService {
+	txManager db.TxManager,
+	userCache repository.UserCache) service.UserService {
 	return &serv{
 		userRepository: userRepository,
+		userCache:      userCache,
 		txManager:      txManager,
 	}
 }
