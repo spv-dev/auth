@@ -19,6 +19,7 @@ type client struct {
 	config config.RedisConfig
 }
 
+// NewClient создание нового клиента для Redis
 func NewClient(pool *redis.Pool, config config.RedisConfig) *client {
 	return &client{
 		pool:   pool,
@@ -26,8 +27,9 @@ func NewClient(pool *redis.Pool, config config.RedisConfig) *client {
 	}
 }
 
+// HashSet обёртка для выполнения HSET в Redis. Сохраняет объект
 func (c *client) HashSet(ctx context.Context, key string, values interface{}) error {
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		_, err := conn.Do("HSET", redis.Args{key}.AddFlat(values)...)
 		if err != nil {
 			return err
@@ -41,8 +43,10 @@ func (c *client) HashSet(ctx context.Context, key string, values interface{}) er
 
 	return nil
 }
+
+// Set обёртка для выполнения SET в Redis. Сохраняет одно значение
 func (c *client) Set(ctx context.Context, key string, value interface{}) error {
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		_, err := conn.Do("SET", redis.Args{key}.Add(value)...)
 		if err != nil {
 			return err
@@ -56,9 +60,11 @@ func (c *client) Set(ctx context.Context, key string, value interface{}) error {
 
 	return nil
 }
+
+// HGetAll обёртка для выполнения SET в Redis. Получает объект
 func (c *client) HGetAll(ctx context.Context, key string) ([]interface{}, error) {
 	var values []interface{}
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		var errEx error
 		values, errEx = redis.Values(conn.Do("HGETALL", key))
 		if errEx != nil {
@@ -73,9 +79,11 @@ func (c *client) HGetAll(ctx context.Context, key string) ([]interface{}, error)
 
 	return values, nil
 }
+
+// Get обёртка для выполнения SET в Redis. Получает одно значение
 func (c *client) Get(ctx context.Context, key string) (interface{}, error) {
 	var value interface{}
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		var errEx error
 		value, errEx = conn.Do("GET", key)
 		if errEx != nil {
@@ -90,8 +98,10 @@ func (c *client) Get(ctx context.Context, key string) (interface{}, error) {
 
 	return value, nil
 }
+
+// Expire обёртка для выполнения EXPIRE в Redis. Установка времени жизни
 func (c *client) Expire(ctx context.Context, key string, expiration time.Duration) error {
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		_, err := conn.Do("EXPIRE", key, int(expiration.Seconds()))
 		if err != nil {
 			return err
@@ -105,8 +115,10 @@ func (c *client) Expire(ctx context.Context, key string, expiration time.Duratio
 
 	return nil
 }
+
+// Ping обёртка для выполнения PING в Redis. Проверка связи с хранилищем
 func (c *client) Ping(ctx context.Context) error {
-	err := c.execute(ctx, func(ctx context.Context, conn redis.Conn) error {
+	err := c.execute(ctx, func(_ context.Context, conn redis.Conn) error {
 		_, err := conn.Do("PING")
 		if err != nil {
 			return err

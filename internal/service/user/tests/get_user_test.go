@@ -38,7 +38,7 @@ func TestGetUser(t *testing.T) {
 		id    = gofakeit.Int64()
 		name  = gofakeit.Name()
 		email = gofakeit.Email()
-		role  = constants.Roles_USER
+		role  = constants.RolesUSER
 		dt    = time.Now()
 
 		repoErr = fmt.Errorf("repo error")
@@ -91,10 +91,10 @@ func TestGetUser(t *testing.T) {
 				mock.GetUserMock.Expect(ctx, id).Return(u, nil)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				mock := repoMocks.NewUserCacheMock(t)
 				mock.GetUserMock.Expect(ctx, id).Return(model.User{}, errors.New("No cache"))
 				mock.AddUserMock.Expect(ctx, id, &u).Return(nil)
@@ -115,10 +115,10 @@ func TestGetUser(t *testing.T) {
 				mock.GetUserMock.Expect(ctx, id).Return(model.User{}, repoErr)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				mock := repoMocks.NewUserCacheMock(t)
 				mock.GetUserMock.Expect(ctx, id).Return(model.User{}, errors.New("No cache"))
 				return mock

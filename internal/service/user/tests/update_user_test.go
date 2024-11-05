@@ -36,7 +36,7 @@ func TestUpdateUser(t *testing.T) {
 
 		id          = gofakeit.Int64()
 		name        = gofakeit.Name()
-		role        = constants.Roles_USER
+		role        = constants.RolesUSER
 		emptyString = ""
 		repoErr     = fmt.Errorf("repo error")
 
@@ -72,10 +72,10 @@ func TestUpdateUser(t *testing.T) {
 				mock.UpdateUserMock.Expect(ctx, id, info).Return(nil)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -90,10 +90,10 @@ func TestUpdateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -111,10 +111,10 @@ func TestUpdateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -131,10 +131,10 @@ func TestUpdateUser(t *testing.T) {
 				mock.UpdateUserMock.Expect(ctx, id, info).Return(repoErr)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},

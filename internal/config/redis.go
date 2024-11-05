@@ -16,6 +16,7 @@ const (
 	redisIdleTimeoutEnvName       = "REDIS_IDLE_TIMEOUT_SEC"
 )
 
+// RedisConfig интерфейс конфигурации Redis
 type RedisConfig interface {
 	Address() string
 	ConnectionTimeout() time.Duration
@@ -33,6 +34,7 @@ type redisConfig struct {
 	idleTimeout time.Duration
 }
 
+// NewRedisConfig получение конфигурации для подсоединение к Redis
 func NewRedisConfig() (*redisConfig, error) {
 	host := os.Getenv(redisHostEnvName)
 	if len(host) == 0 {
@@ -83,18 +85,22 @@ func NewRedisConfig() (*redisConfig, error) {
 	}, nil
 }
 
+// Address получение адреса соединения с Redis
 func (cfg *redisConfig) Address() string {
 	return net.JoinHostPort(cfg.host, cfg.port)
 }
 
+// ConnectionTimeout получение значения времени соединения с Redis
 func (cfg *redisConfig) ConnectionTimeout() time.Duration {
 	return cfg.connectionTimeout
 }
 
+// MaxIdle получение значения максимального значения соединений с Redis
 func (cfg *redisConfig) MaxIdle() int {
 	return cfg.maxIdle
 }
 
+// IdleTimeout получение значения времени жизни Idle Redis
 func (cfg *redisConfig) IdleTimeout() time.Duration {
 	return cfg.idleTimeout
 }

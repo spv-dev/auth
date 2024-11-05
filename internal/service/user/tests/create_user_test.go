@@ -37,7 +37,7 @@ func TestCreateUser(t *testing.T) {
 		id    = gofakeit.Int64()
 		name  = gofakeit.Name()
 		email = gofakeit.Email()
-		role  = constants.Roles_USER
+		role  = constants.RolesUSER
 		pass  = gofakeit.Password(true, true, true, true, false, 8)
 
 		repoErr = fmt.Errorf("repo error")
@@ -80,7 +80,7 @@ func TestCreateUser(t *testing.T) {
 				mock.CreateUserMock.Expect(ctx, info, pass).Return(id, nil)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				mock := dbMock.NewTxManagerMock(t)
 				mock.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
 					return handler(ctx)
@@ -88,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 
 				return mock
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -104,10 +104,10 @@ func TestCreateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -123,10 +123,10 @@ func TestCreateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -137,7 +137,7 @@ func TestCreateUser(t *testing.T) {
 				req: &model.UserInfo{
 					Name:  "",
 					Email: "aaa@aa.ru",
-					Role:  constants.Roles_USER,
+					Role:  constants.RolesUSER,
 				},
 				password: "112233",
 			},
@@ -146,10 +146,10 @@ func TestCreateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -160,7 +160,7 @@ func TestCreateUser(t *testing.T) {
 				req: &model.UserInfo{
 					Name:  "Name ",
 					Email: "aaa dfs",
-					Role:  constants.Roles_USER,
+					Role:  constants.RolesUSER,
 				},
 				password: "1122233",
 			},
@@ -169,10 +169,10 @@ func TestCreateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -183,7 +183,7 @@ func TestCreateUser(t *testing.T) {
 				req: &model.UserInfo{
 					Name:  "Name ",
 					Email: "",
-					Role:  constants.Roles_USER,
+					Role:  constants.RolesUSER,
 				},
 				password: "1122233",
 			},
@@ -192,10 +192,10 @@ func TestCreateUser(t *testing.T) {
 			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
 				return repoMocks.NewUserRepositoryMock(mc)
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -213,7 +213,7 @@ func TestCreateUser(t *testing.T) {
 				mock.CreateUserMock.Expect(ctx, info, pass).Return(0, repoErr)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				mock := dbMock.NewTxManagerMock(t)
 				mock.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
 					return handler(ctx)
@@ -221,7 +221,7 @@ func TestCreateUser(t *testing.T) {
 
 				return mock
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},

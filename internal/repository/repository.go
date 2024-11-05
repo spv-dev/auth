@@ -14,8 +14,8 @@ type UserRepository interface {
 	DeleteUser(ctx context.Context, id int64) error
 }
 
+// UserCache интерфейс для кэширования пользователя
 type UserCache interface {
 	AddUser(ctx context.Context, id int64, user *model.User) error
-
 	GetUser(ctx context.Context, id int64) (model.User, error)
 }

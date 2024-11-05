@@ -65,10 +65,12 @@ func ToUpdateUserInfoFromDesc(info *desc.UpdateUserInfo) *model.UpdateUserInfo {
 	return &userInfo
 }
 
+// ConvertRoleFromDesc преобразует значение роли из АПИ слоя
 func ConvertRoleFromDesc(role desc.Roles) constants.Roles {
 	return constants.Roles(int32(role))
 }
 
+// ConvertRoleFromModel преобразует значение Роли из сервисного слоя
 func ConvertRoleFromModel(role constants.Roles) desc.Roles {
 	return desc.Roles(int32(role))
 }

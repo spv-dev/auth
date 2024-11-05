@@ -9,6 +9,7 @@ import (
 	cacheModel "github.com/spv-dev/auth/internal/repository/cache/model"
 )
 
+// ToCacheFromModel преобразует модель пользователь в модель кэша
 func ToCacheFromModel(user *model.User) cacheModel.UserCache {
 	if user == nil {
 		return cacheModel.UserCache{}
@@ -28,6 +29,7 @@ func ToCacheFromModel(user *model.User) cacheModel.UserCache {
 	}
 }
 
+// ToModelFromCache преобразует модель кэша в модель пользователя
 func ToModelFromCache(user *cacheModel.UserCache) model.User {
 	if user == nil {
 		return model.User{}

@@ -1,5 +1,6 @@
 package model
 
+// UserCache модель для кэширования
 type UserCache struct {
 	ID        string `redis:"id"`
 	Name      string `redis:"name"`

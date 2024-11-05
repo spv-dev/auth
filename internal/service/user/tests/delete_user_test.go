@@ -57,10 +57,10 @@ func TestDeleteUser(t *testing.T) {
 				mock.DeleteUserMock.Expect(ctx, id).Return(nil)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},
@@ -76,10 +76,10 @@ func TestDeleteUser(t *testing.T) {
 				mock.DeleteUserMock.Expect(ctx, id).Return(repoErr)
 				return mock
 			},
-			dbMockFunc: func(mc *minimock.Controller) db.TxManager {
+			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
 				return dbMock.NewTxManagerMock(t)
 			},
-			userCacheMock: func(mc *minimock.Controller) repository.UserCache {
+			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
 		},

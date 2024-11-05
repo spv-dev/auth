@@ -19,12 +19,14 @@ type cache struct {
 	redisClient client.RedisClient
 }
 
+// NewCache создание нового клиента для связи с Redis
 func NewCache(client client.RedisClient) repository.UserCache {
 	return &cache{
 		redisClient: client,
 	}
 }
 
+// AddUser побавление пользователя в кэш
 func (c *cache) AddUser(ctx context.Context, id int64, user *model.User) error {
 	if user == nil {
 		return errors.New("нет задана информация о пользователе")
@@ -40,6 +42,7 @@ func (c *cache) AddUser(ctx context.Context, id int64, user *model.User) error {
 	return nil
 }
 
+// GetUser получение пользователя из кэша
 func (c *cache) GetUser(ctx context.Context, id int64) (model.User, error) {
 	values, err := c.redisClient.HGetAll(ctx, strconv.FormatInt(id, 10))
 	if err != nil {

@@ -19,6 +19,9 @@ func (s *serv) GetUser(ctx context.Context, id int64) (model.User, error) {
 	}
 
 	err = s.userCache.AddUser(ctx, id, &user)
+	if err != nil {
+		return model.User{}, err
+	}
 
 	return user, nil
 }
