@@ -26,6 +26,7 @@ type serviceProvider struct {
 	pgConfig    config.PGConfig
 	grpcConfig  config.GRPCConfig
 	redisConfig config.RedisConfig
+	httpConfig  config.HTTPConfig
 
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -68,6 +69,19 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 		s.grpcConfig = cfg
 	}
 	return s.grpcConfig
+}
+
+// HTTPConfig получение конфигурации подключения http
+func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
+	if s.httpConfig == nil {
+		cfg, err := config.NewHTTPConfig()
+		if err != nil {
+			log.Fatalf("failed to get http config: %v", err)
+		}
+
+		s.httpConfig = cfg
+	}
+	return s.httpConfig
 }
 
 // RedisConfig получение конфигурации подключения к redis

@@ -3,14 +3,37 @@ syntax="proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/spv-dev/auth/pkg/user_v1;user_v1";
 
 service AuthV1 {
-    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-    rpc GetUser(GetUserRequest) returns (GetUserResponse);
-    rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.Empty);
-    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+        option (google.api.http) = {
+            post: "/user/v1/create"
+            body: "*"
+        };
+    }
+
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+        option (google.api.http) = {
+            get: "/user/v1"
+        };
+    }
+
+    rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/user/v1"
+            body: "*"
+        };
+    }
+
+    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty)  {
+        option (google.api.http) = {
+            delete: "/user/v1"
+        };
+    }
 }
 
 enum Roles {
@@ -20,8 +43,8 @@ enum Roles {
 }
 
 message UserInfo {
-    string name = 1;
-    string email = 2;
+    string name = 1 [(validate.rules).string = {min_len : 3}];
+    string email = 2 [(validate.rules).string.email = true];
     Roles role = 3;
 }
 
@@ -39,8 +62,8 @@ message UpdateUserInfo {
 
 message CreateUserRequest {
     UserInfo info = 1;
-    string password = 2;
-    string password_confirm = 3;
+    string password = 2 [(validate.rules).string = {min_len : 8}];
+    string password_confirm = 3 [(validate.rules).string = {min_len : 8}];
 }
 
 message CreateUserResponse {
