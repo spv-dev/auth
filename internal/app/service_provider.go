@@ -23,10 +23,11 @@ import (
 )
 
 type serviceProvider struct {
-	pgConfig    config.PGConfig
-	grpcConfig  config.GRPCConfig
-	redisConfig config.RedisConfig
-	httpConfig  config.HTTPConfig
+	pgConfig      config.PGConfig
+	grpcConfig    config.GRPCConfig
+	redisConfig   config.RedisConfig
+	httpConfig    config.HTTPConfig
+	swaggerConfig config.SwaggerConfig
 
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -95,6 +96,19 @@ func (s *serviceProvider) RedisConfig() config.RedisConfig {
 		s.redisConfig = cfg
 	}
 	return s.redisConfig
+}
+
+// SwaggerConfig получение конфигурации подключения к redis
+func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
+	if s.swaggerConfig == nil {
+		cfg, err := config.NewSwaggerConfig()
+		if err != nil {
+			log.Fatalf("failed to get swagger config: %v", err)
+		}
+
+		s.swaggerConfig = cfg
+	}
+	return s.swaggerConfig
 }
 
 // DBClient получение подключения к БД
