@@ -4,25 +4,36 @@ import (
 	"context"
 	"log"
 
+	"github.com/gomodule/redigo/redis"
+	"github.com/spv-dev/platform_common/pkg/closer"
+	"github.com/spv-dev/platform_common/pkg/db"
+	"github.com/spv-dev/platform_common/pkg/db/pg"
+	"github.com/spv-dev/platform_common/pkg/db/transaction"
+
 	"github.com/spv-dev/auth/internal/api/user"
-	"github.com/spv-dev/auth/internal/client/db"
-	"github.com/spv-dev/auth/internal/client/db/pg"
-	"github.com/spv-dev/auth/internal/client/db/transaction"
-	"github.com/spv-dev/auth/internal/closer"
+	"github.com/spv-dev/auth/internal/client/cache"
+
+	redisClient "github.com/spv-dev/auth/internal/client/cache/redis"
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/repository"
+	cacheRepository "github.com/spv-dev/auth/internal/repository/cache"
 	userRepository "github.com/spv-dev/auth/internal/repository/user"
 	"github.com/spv-dev/auth/internal/service"
 	userService "github.com/spv-dev/auth/internal/service/user"
 )
 
 type serviceProvider struct {
-	pgConfig   config.PGConfig
-	grpcConfig config.GRPCConfig
+	pgConfig    config.PGConfig
+	grpcConfig  config.GRPCConfig
+	redisConfig config.RedisConfig
 
 	dbClient       db.Client
 	txManager      db.TxManager
 	userRepository repository.UserRepository
+
+	userCache   repository.UserCache
+	redisPool   *redis.Pool
+	redisClient cache.RedisClient
 
 	userService service.UserService
 
@@ -57,6 +68,19 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 		s.grpcConfig = cfg
 	}
 	return s.grpcConfig
+}
+
+// RedisConfig получение конфигурации подключения к redis
+func (s *serviceProvider) RedisConfig() config.RedisConfig {
+	if s.redisConfig == nil {
+		cfg, err := config.NewRedisConfig()
+		if err != nil {
+			log.Fatalf("failed to get redis config: %v", err)
+		}
+
+		s.redisConfig = cfg
+	}
+	return s.redisConfig
 }
 
 // DBClient получение подключения к БД
@@ -97,11 +121,45 @@ func (s *serviceProvider) UserRepository(ctx context.Context) repository.UserRep
 }
 
 // UserService получение объекта доступа к сервисному слою
+func (s *serviceProvider) RedisPool() *redis.Pool {
+	if s.redisPool == nil {
+		s.redisPool = &redis.Pool{
+			MaxIdle:     s.RedisConfig().MaxIdle(),
+			IdleTimeout: s.RedisConfig().IdleTimeout(),
+			DialContext: func(ctx context.Context) (redis.Conn, error) {
+				return redis.DialContext(ctx, "tcp", s.RedisConfig().Address())
+			},
+		}
+	}
+
+	return s.redisPool
+}
+
+// RedisClient получение объекта доступа к кэшу
+func (s *serviceProvider) RedisClient() cache.RedisClient {
+	if s.redisClient == nil {
+		s.redisClient = redisClient.NewClient(s.RedisPool(), s.RedisConfig())
+	}
+
+	return s.redisClient
+}
+
+// RedisClient получение объекта доступа к кэшу
+func (s *serviceProvider) UserCache() repository.UserCache {
+	if s.userCache == nil {
+		s.userCache = cacheRepository.NewCache(s.RedisClient())
+	}
+
+	return s.userCache
+}
+
+// UserService получение объекта доступа к сервисному слою
 func (s *serviceProvider) UserService(ctx context.Context) service.UserService {
 	if s.userService == nil {
 		s.userService = userService.NewService(
 			s.UserRepository(ctx),
 			s.TxManager(ctx),
+			s.UserCache(),
 		)
 	}
 

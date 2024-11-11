@@ -1,7 +1,8 @@
 package user
 
 import (
-	"github.com/spv-dev/auth/internal/client/db"
+	"github.com/spv-dev/platform_common/pkg/db"
+
 	"github.com/spv-dev/auth/internal/repository"
 )
 

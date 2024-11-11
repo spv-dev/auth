@@ -10,17 +10,14 @@ import (
 
 // GetUser получает информацию о пользователе по идентификатору
 func (s *Server) GetUser(ctx context.Context, req *desc.GetUserRequest) (*desc.GetUserResponse, error) {
-	id := req.GetId()
-	userObj, err := s.userService.GetUser(ctx, id)
+	userObj, err := s.userService.GetUser(ctx, req.GetId())
 	if err != nil {
 		return nil, err
 	}
 
-	log.Printf("get user by id: %d", id)
-
-	user := converter.ToUserFromService(&userObj)
+	log.Printf("get user by id: %d", req.GetId())
 
 	return &desc.GetUserResponse{
-		User: &user,
+		User: converter.ToUserFromService(&userObj),
 	}, nil
 }

@@ -7,17 +7,17 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/spv-dev/platform_common/pkg/db"
 
-	"github.com/spv-dev/auth/internal/client/db"
 	model "github.com/spv-dev/auth/internal/model"
 )
 
 // UpdateUser изменяет пользователя в БД
 func (r *repo) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserInfo) error {
 	builder := sq.Update(tableName).
-		PlaceholderFormat(sq.Dollar).
 		Set(updatedAtColumn, time.Now()).
-		Where(sq.Eq{idColumn: id})
+		Where(sq.Eq{idColumn: id}).
+		PlaceholderFormat(sq.Dollar)
 
 	if info.Name != nil {
 		builder = builder.Set(nameColumn, info.Name)

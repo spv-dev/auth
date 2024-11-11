@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/spv-dev/auth/internal/constants"
 )
 
 // User модель
@@ -15,13 +17,13 @@ type User struct {
 
 // UserInfo модель
 type UserInfo struct {
-	Name  string `db:"name"`
-	Email string `db:"email"`
-	Role  int32  `db:"role"`
+	Name  string          `db:"name"`
+	Email string          `db:"email"`
+	Role  constants.Roles `db:"role"`
 }
 
 // UpdateUserInfo модель
 type UpdateUserInfo struct {
-	Name *string `db:"name,omitempty"`
-	Role *int32  `db:"role,omitempty"`
+	Name *string          `db:"name,omitempty"`
+	Role *constants.Roles `db:"role,omitempty"`
 }

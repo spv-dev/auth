@@ -18,9 +18,11 @@ func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password st
 	if err := validator.CheckName(info.Name); err != nil {
 		return 0, err
 	}
+
 	if err := validator.CheckEmail(info.Email); err != nil {
 		return 0, err
 	}
+
 	if err := validator.CheckPassword(password); err != nil {
 		return 0, err
 	}
@@ -29,11 +31,6 @@ func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password st
 	err := s.txManager.ReadCommited(ctx, func(ctx context.Context) error {
 		var errTx error
 		id, errTx = s.userRepository.CreateUser(ctx, info, password)
-		if errTx != nil {
-			return errTx
-		}
-
-		_, errTx = s.userRepository.GetUser(ctx, id)
 		if errTx != nil {
 			return errTx
 		}

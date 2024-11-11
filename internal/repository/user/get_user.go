@@ -5,18 +5,18 @@ import (
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/spv-dev/platform_common/pkg/db"
 
-	"github.com/spv-dev/auth/internal/client/db"
 	model "github.com/spv-dev/auth/internal/model"
 )
 
 // GetUser получает информацию о пользователе по идентификатору
 func (r *repo) GetUser(ctx context.Context, id int64) (model.User, error) {
-	builder := sq.Select(idColumn, nameColumn, emailColumn, createdAtColumn).
-		PlaceholderFormat(sq.Dollar).
+	builder := sq.Select(idColumn, nameColumn, emailColumn, createdAtColumn, updatedAtColumn, roleColumn).
 		From(tableName).
 		Where(sq.Eq{idColumn: id}).
-		Limit(1)
+		Limit(1).
+		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := builder.ToSql()
 	if err != nil {

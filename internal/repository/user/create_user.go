@@ -5,18 +5,18 @@ import (
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/spv-dev/platform_common/pkg/db"
 
-	"github.com/spv-dev/auth/internal/client/db"
 	model "github.com/spv-dev/auth/internal/model"
 )
 
 // CreateUser создаёт нового пользователя в БД
 func (r *repo) CreateUser(ctx context.Context, info *model.UserInfo, password string) (int64, error) {
 	builder := sq.Insert(tableName).
-		PlaceholderFormat(sq.Dollar).
 		Columns(nameColumn, emailColumn, roleColumn, passwordColumn).
 		Values(info.Name, info.Email, info.Role, password).
-		Suffix("returning id")
+		Suffix("returning id").
+		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := builder.ToSql()
 	if err != nil {

@@ -10,8 +10,7 @@ import (
 
 // CreateUser создаёт нового пользователя
 func (s *Server) CreateUser(ctx context.Context, req *desc.CreateUserRequest) (*desc.CreateUserResponse, error) {
-	userInfo := converter.ToUserInfoFromDesc(req.GetInfo())
-	id, err := s.userService.CreateUser(ctx, &userInfo, req.Password)
+	id, err := s.userService.CreateUser(ctx, converter.ToUserInfoFromDesc(req.GetInfo()), req.Password)
 	if err != nil {
 		return nil, err
 	}

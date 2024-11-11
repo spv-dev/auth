@@ -5,11 +5,11 @@ import (
 	"log"
 	"net"
 
+	"github.com/spv-dev/platform_common/pkg/closer"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/spv-dev/auth/internal/closer"
 	"github.com/spv-dev/auth/internal/config"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 )
