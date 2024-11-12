@@ -11,6 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	dbMock "github.com/spv-dev/auth/internal/client/db/mocks"
+	"github.com/spv-dev/auth/internal/client/kafka"
+	kafkaMocks "github.com/spv-dev/auth/internal/client/kafka/mocks"
 	"github.com/spv-dev/auth/internal/repository"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
@@ -21,6 +23,7 @@ func TestDeleteUser(t *testing.T) {
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
 	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
+	type producerMockFunc func(mc *minimock.Controller) kafka.Producer
 
 	type args struct {
 		ctx context.Context
@@ -44,6 +47,7 @@ func TestDeleteUser(t *testing.T) {
 		userRepositoryMock userRepositoryMockFunc
 		dbMockFunc         txManagerMockFunc
 		userCacheMock      userCacheMockFunc
+		producerMock       producerMockFunc
 	}{
 		{
 			name: "Success Delete User",
@@ -62,6 +66,9 @@ func TestDeleteUser(t *testing.T) {
 			},
 			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
+			},
+			producerMock: func(_ *minimock.Controller) kafka.Producer {
+				return kafkaMocks.NewProducerMock(t)
 			},
 		},
 		{
@@ -82,6 +89,9 @@ func TestDeleteUser(t *testing.T) {
 			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
 				return repoMocks.NewUserCacheMock(t)
 			},
+			producerMock: func(_ *minimock.Controller) kafka.Producer {
+				return kafkaMocks.NewProducerMock(t)
+			},
 		},
 	}
 
@@ -92,7 +102,8 @@ func TestDeleteUser(t *testing.T) {
 			userRepoMock := tt.userRepositoryMock(mc)
 			txManagerMock := tt.dbMockFunc(mc)
 			userCacheMock := tt.userCacheMock(mc)
-			service := user.NewService(userRepoMock, txManagerMock, userCacheMock)
+			producerMock := tt.producerMock(mc)
+			service := user.NewService(userRepoMock, txManagerMock, userCacheMock, producerMock)
 
 			err := service.DeleteUser(tt.args.ctx, tt.args.req)
 			require.Equal(t, tt.err, err)
