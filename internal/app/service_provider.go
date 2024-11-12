@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/IBM/sarama"
 	"github.com/gomodule/redigo/redis"
 	"github.com/spv-dev/platform_common/pkg/closer"
 	"github.com/spv-dev/platform_common/pkg/db"
@@ -12,8 +13,10 @@ import (
 
 	"github.com/spv-dev/auth/internal/api/user"
 	"github.com/spv-dev/auth/internal/client/cache"
+	"github.com/spv-dev/auth/internal/client/kafka"
 
 	redisClient "github.com/spv-dev/auth/internal/client/cache/redis"
+	kafkaProducer "github.com/spv-dev/auth/internal/client/kafka/producer"
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/repository"
 	cacheRepository "github.com/spv-dev/auth/internal/repository/cache"
@@ -23,11 +26,12 @@ import (
 )
 
 type serviceProvider struct {
-	pgConfig      config.PGConfig
-	grpcConfig    config.GRPCConfig
-	redisConfig   config.RedisConfig
-	httpConfig    config.HTTPConfig
-	swaggerConfig config.SwaggerConfig
+	pgConfig            config.PGConfig
+	grpcConfig          config.GRPCConfig
+	redisConfig         config.RedisConfig
+	httpConfig          config.HTTPConfig
+	swaggerConfig       config.SwaggerConfig
+	kafkaProducerConfig config.KafkaProducerConfig
 
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -36,6 +40,9 @@ type serviceProvider struct {
 	userCache   repository.UserCache
 	redisPool   *redis.Pool
 	redisClient cache.RedisClient
+
+	producer kafka.Producer
+	sender   sarama.SyncProducer
 
 	userService service.UserService
 
@@ -109,6 +116,19 @@ func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 		s.swaggerConfig = cfg
 	}
 	return s.swaggerConfig
+}
+
+func (s *serviceProvider) KafkaProducerConfig() config.KafkaProducerConfig {
+	if s.kafkaProducerConfig == nil {
+		cfg, err := config.NewKafkaProducerConfig()
+		if err != nil {
+			log.Fatalf("failed to get kafka producer config: %s", err.Error())
+		}
+
+		s.kafkaProducerConfig = cfg
+	}
+
+	return s.kafkaProducerConfig
 }
 
 // DBClient получение подключения к БД
@@ -188,6 +208,7 @@ func (s *serviceProvider) UserService(ctx context.Context) service.UserService {
 			s.UserRepository(ctx),
 			s.TxManager(ctx),
 			s.UserCache(),
+			s.Producer(),
 		)
 	}
 
@@ -201,4 +222,31 @@ func (s *serviceProvider) UserServer(ctx context.Context) *user.Server {
 	}
 
 	return s.userServer
+}
+
+func (s *serviceProvider) Producer() kafka.Producer {
+	if s.producer == nil {
+		s.producer = kafkaProducer.NewProducer(
+			s.Sender(),
+		)
+		closer.Add(s.producer.Close)
+	}
+
+	return s.producer
+}
+
+func (s *serviceProvider) Sender() sarama.SyncProducer {
+	if s.sender == nil {
+		sender, err := sarama.NewSyncProducer(
+			s.KafkaProducerConfig().Brokers(),
+			s.KafkaProducerConfig().Config(),
+		)
+		if err != nil {
+			log.Fatalf("failed to create kafka sender: %v", err)
+		}
+
+		s.sender = sender
+	}
+
+	return s.sender
 }

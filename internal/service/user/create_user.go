@@ -42,5 +42,10 @@ func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password st
 		return 0, err
 	}
 
+	err = s.userProducer.Send("topic_name", fmt.Sprintf("%d", id))
+	if err != nil {
+		return 0, err
+	}
+
 	return id, nil
 }
