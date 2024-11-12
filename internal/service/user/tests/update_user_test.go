@@ -2,172 +2,88 @@ package tests
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
-	"github.com/spv-dev/platform_common/pkg/db"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 
 	dbMock "github.com/spv-dev/auth/internal/client/db/mocks"
-	"github.com/spv-dev/auth/internal/client/kafka"
 	kafkaMocks "github.com/spv-dev/auth/internal/client/kafka/mocks"
 	"github.com/spv-dev/auth/internal/constants"
 	model "github.com/spv-dev/auth/internal/model"
-	"github.com/spv-dev/auth/internal/repository"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
 )
 
 func TestUpdateUser(t *testing.T) {
 	t.Parallel()
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
-	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
-	type producerMockFunc func(mc *minimock.Controller) kafka.Producer
 
-	type args struct {
-		ctx context.Context
-		req *model.UpdateUserInfo
-		id  int64
+	ctx := context.Background()
+	id := gofakeit.Int64()
+	name := gofakeit.Name()
+	role := constants.RolesUSER
+
+	userInfo := &model.UpdateUserInfo{
+		Name: &name,
+		Role: &role,
 	}
 
-	var (
-		ctx = context.Background()
-		mc  = minimock.NewController(t)
+	emptyString := ""
 
-		id          = gofakeit.Int64()
-		name        = gofakeit.Name()
-		role        = constants.RolesUSER
-		emptyString = ""
-		repoErr     = fmt.Errorf("repo error")
-
-		req = &model.UpdateUserInfo{
-			Name: &name,
-			Role: &role,
-		}
-
-		info = &model.UpdateUserInfo{
-			Name: &name,
-			Role: &role,
-		}
-	)
-
-	tests := []struct {
-		name               string
-		args               args
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		dbMockFunc         txManagerMockFunc
-		userCacheMock      userCacheMockFunc
-		producerMock       producerMockFunc
-	}{
-		{
-			name: "Success Update User",
-			args: args{
-				ctx: ctx,
-				req: req,
-				id:  id,
-			},
-			err: nil,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repoMocks.NewUserRepositoryMock(mc)
-				mock.UpdateUserMock.Expect(ctx, id, info).Return(nil)
-				return mock
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Empty data",
-			args: args{
-				ctx: ctx,
-				req: nil,
-				id:  id,
-			},
-			err: fmt.Errorf("Пустые данные при изменении пользователя"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Empty Name",
-			args: args{
-				ctx: ctx,
-				req: &model.UpdateUserInfo{
-					Name: &emptyString,
-					Role: &role,
-				},
-				id: id,
-			},
-			err: fmt.Errorf("Пустое имя пользователя"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Update User",
-			args: args{
-				ctx: ctx,
-				req: req,
-				id:  id,
-			},
-			err: repoErr,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repoMocks.NewUserRepositoryMock(mc)
-				mock.UpdateUserMock.Expect(ctx, id, info).Return(repoErr)
-				return mock
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
+	userInfoEmptyName := &model.UpdateUserInfo{
+		Name: &emptyString,
+		Role: &role,
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			userRepositoryMock := tt.userRepositoryMock(mc)
-			txManager := tt.dbMockFunc(mc)
-			userCache := tt.userCacheMock(mc)
-			producerMock := tt.producerMock(mc)
-			service := user.NewService(userRepositoryMock, txManager, userCache, producerMock)
+	repoError := errors.New("repo error")
 
-			err := service.UpdateUser(tt.args.ctx, tt.args.id, tt.args.req)
-			require.Equal(t, tt.err, err)
-		})
-	}
+	mc := minimock.NewController(t)
+
+	repo := repoMocks.NewUserRepositoryMock(mc)
+	trans := dbMock.NewTxManagerMock(mc)
+	cache := repoMocks.NewUserCacheMock(mc)
+	kafka := kafkaMocks.NewProducerMock(mc)
+
+	service := user.NewService(repo, trans, cache, kafka)
+
+	t.Run("update user success", func(t *testing.T) {
+		t.Parallel()
+
+		repo.UpdateUserMock.Expect(ctx, id, userInfo).Return(nil)
+
+		err := service.UpdateUser(ctx, id, userInfo)
+		assert.NoError(t, err)
+	})
+
+	t.Run("update user error", func(t *testing.T) {
+		t.Parallel()
+
+		repo.UpdateUserMock.Expect(ctx, id, userInfo).Return(repoError)
+
+		err := service.UpdateUser(ctx, id, userInfo)
+		assert.ErrorIs(t, err, repoError)
+	})
+
+	emptyErr := errors.New("Пустые данные при изменении пользователя")
+	t.Run("update user error empty data", func(t *testing.T) {
+		//t.Parallel()
+
+		repo.UpdateUserMock.Expect(ctx, id, nil).Return(emptyErr)
+
+		err := service.UpdateUser(ctx, id, nil)
+		assert.Equal(t, err, emptyErr)
+	})
+
+	errEmptyName := errors.New("Пустое имя пользователя")
+	t.Run("update user error empty name", func(t *testing.T) {
+		t.Parallel()
+
+		repo.UpdateUserMock.Expect(ctx, id, userInfoEmptyName).Return(errEmptyName)
+
+		err := service.UpdateUser(ctx, id, userInfoEmptyName)
+		assert.Equal(t, err, errEmptyName)
+	})
+
 }

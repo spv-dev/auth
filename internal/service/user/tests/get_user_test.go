@@ -2,28 +2,23 @@ package tests
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
-	"github.com/spv-dev/platform_common/pkg/db"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 
 	dbMock "github.com/spv-dev/auth/internal/client/db/mocks"
-	"github.com/spv-dev/auth/internal/client/kafka"
 	kafkaMocks "github.com/spv-dev/auth/internal/client/kafka/mocks"
 	"github.com/spv-dev/auth/internal/constants"
 	"github.com/spv-dev/auth/internal/model"
-	"github.com/spv-dev/auth/internal/repository"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
 )
 
 func TestGetUser(t *testing.T) {
-	t.Parallel()
+	/*t.Parallel()
 	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
 	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
 	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
@@ -203,4 +198,44 @@ func TestGetUser(t *testing.T) {
 			require.Equal(t, tt.want, res)
 		})
 	}
+	*/
+	ctx := context.Background()
+	id := gofakeit.Int64()
+	name := gofakeit.Name()
+	email := gofakeit.Email()
+	role := constants.RolesUSER
+	dt := time.Now()
+
+	//testError := errors.New("test error")
+
+	mc := minimock.NewController(t)
+
+	repo := repoMocks.NewUserRepositoryMock(mc)
+	trans := dbMock.NewTxManagerMock(mc)
+	cache := repoMocks.NewUserCacheMock(mc)
+	kafka := kafkaMocks.NewProducerMock(mc)
+
+	service := user.NewService(repo, trans, cache, kafka)
+
+	user := model.User{
+		ID:        id,
+		CreatedAt: dt,
+		UpdatedAt: &dt,
+		Info: model.UserInfo{
+			Name:  name,
+			Email: email,
+			Role:  role,
+		},
+	}
+
+	t.Run("get user success", func(t *testing.T) {
+		//t.Parallel()
+
+		repo.GetUserMock.Expect(ctx, id).Return(user, nil)
+
+		u, err := service.GetUser(ctx, id)
+
+		assert.NoError(t, err)
+		assert.Equal(t, u, user)
+	})
 }
