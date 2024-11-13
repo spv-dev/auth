@@ -19,6 +19,8 @@ import (
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/interceptor"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
+
+	// нужно чтобы подтянуть данные
 	_ "github.com/spv-dev/auth/statik"
 )
 
@@ -148,7 +150,7 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	a.httpServer = &http.Server{
 		Addr:    a.serviceProvider.HTTPConfig().Address(),
 		Handler: corsMiddleware.Handler(mux),
-	}
+	} // #nosec G112
 
 	return nil
 }
@@ -166,7 +168,7 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 	a.swaggerServer = &http.Server{
 		Addr:    a.serviceProvider.SwaggerConfig().Address(),
 		Handler: mux,
-	}
+	} // #nosec G112
 
 	return nil
 }
@@ -210,7 +212,7 @@ func (a *App) runSwaggerServer() error {
 }
 
 func serveSwaggerFile(path string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, _ *http.Request) {
 		log.Printf("Serving swagger file: %s", path)
 
 		statikFs, err := fs.New()
@@ -226,7 +228,11 @@ func serveSwaggerFile(path string) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		defer file.Close()
+		defer func() {
+			if err := file.Close(); err != nil {
+				log.Fatalf("failed to close swagger file: %v", err)
+			}
+		}()
 
 		log.Printf("Read swagger file: %s", path)
 

@@ -2,304 +2,153 @@ package tests
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strconv"
 	"testing"
 
 	"github.com/brianvoe/gofakeit"
 	"github.com/gojuno/minimock/v3"
-	"github.com/spv-dev/platform_common/pkg/db"
-	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 
 	dbMock "github.com/spv-dev/auth/internal/client/db/mocks"
-	"github.com/spv-dev/auth/internal/client/kafka"
 	kafkaMocks "github.com/spv-dev/auth/internal/client/kafka/mocks"
 	"github.com/spv-dev/auth/internal/constants"
 	model "github.com/spv-dev/auth/internal/model"
-	"github.com/spv-dev/auth/internal/repository"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
+	"github.com/spv-dev/platform_common/pkg/db"
 )
 
 func TestCreateUser(t *testing.T) {
 	t.Parallel()
-	type userRepositoryMockFunc func(mc *minimock.Controller) repository.UserRepository
-	type txManagerMockFunc func(mc *minimock.Controller) db.TxManager
-	type userCacheMockFunc func(mc *minimock.Controller) repository.UserCache
-	type producerMockFunc func(mc *minimock.Controller) kafka.Producer
 
-	type args struct {
-		ctx      context.Context
-		req      *model.UserInfo
-		password string
+	ctx := context.Background()
+	id := gofakeit.Int64()
+	name := gofakeit.Name()
+	email := gofakeit.Email()
+	role := constants.RolesUSER
+	pass := gofakeit.Password(true, true, true, false, false, 8)
+
+	userInfo := &model.UserInfo{
+		Name:  name,
+		Email: email,
+		Role:  role,
 	}
 
-	var (
-		ctx = context.Background()
-		mc  = minimock.NewController(t)
-
-		id    = gofakeit.Int64()
-		name  = gofakeit.Name()
-		email = gofakeit.Email()
-		role  = constants.RolesUSER
-		pass  = gofakeit.Password(true, true, true, true, false, 8)
-
-		repoErr  = fmt.Errorf("repo error")
-		kafkaErr = fmt.Errorf("kafka error")
-
-		req = &model.UserInfo{
-			Name:  name,
-			Email: email,
-			Role:  role,
-		}
-
-		info = &model.UserInfo{
-			Name:  name,
-			Email: email,
-			Role:  role,
-		}
-
-		res = id
-	)
-
-	tests := []struct {
-		name               string
-		args               args
-		want               int64
-		err                error
-		userRepositoryMock userRepositoryMockFunc
-		dbMockFunc         txManagerMockFunc
-		userCacheMock      userCacheMockFunc
-		producerMock       producerMockFunc
-	}{
-		{
-			name: "Success Create User",
-			args: args{
-				ctx:      ctx,
-				req:      req,
-				password: pass,
-			},
-			want: res,
-			err:  nil,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repoMocks.NewUserRepositoryMock(mc)
-				mock.CreateUserMock.Expect(ctx, info, pass).Return(id, nil)
-				return mock
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				mock := dbMock.NewTxManagerMock(t)
-				mock.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
-					return handler(ctx)
-				})
-
-				return mock
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				mock := kafkaMocks.NewProducerMock(t)
-				mock.SendMock.Expect("topic_name", strconv.FormatInt(id, 10)).Return(nil)
-				return mock
-			},
-		},
-		{
-			name: "Error Empty Info",
-			args: args{
-				ctx:      ctx,
-				req:      nil,
-				password: pass,
-			},
-			want: 0,
-			err:  fmt.Errorf("Пустые данные при создании пользователя"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Empty Password",
-			args: args{
-				ctx:      ctx,
-				req:      req,
-				password: "",
-			},
-			want: 0,
-			err:  fmt.Errorf("Пустой пароль"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Empty UserName",
-			args: args{
-				ctx: ctx,
-				req: &model.UserInfo{
-					Name:  "",
-					Email: "aaa@aa.ru",
-					Role:  constants.RolesUSER,
-				},
-				password: "112233",
-			},
-			want: 0,
-			err:  fmt.Errorf("Пустое имя пользователя"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Email",
-			args: args{
-				ctx: ctx,
-				req: &model.UserInfo{
-					Name:  "Name ",
-					Email: "aaa dfs",
-					Role:  constants.RolesUSER,
-				},
-				password: "1122233",
-			},
-			want: 0,
-			err:  fmt.Errorf("Указан неверный Email"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Email",
-			args: args{
-				ctx: ctx,
-				req: &model.UserInfo{
-					Name:  "Name ",
-					Email: "",
-					Role:  constants.RolesUSER,
-				},
-				password: "1122233",
-			},
-			want: 0,
-			err:  fmt.Errorf("Пустой email пользователя"),
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				return repoMocks.NewUserRepositoryMock(mc)
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				return dbMock.NewTxManagerMock(t)
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error in repo",
-			args: args{
-				ctx:      ctx,
-				req:      req,
-				password: pass,
-			},
-			want: 0,
-			err:  repoErr,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repoMocks.NewUserRepositoryMock(mc)
-				mock.CreateUserMock.Expect(ctx, info, pass).Return(0, repoErr)
-				return mock
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				mock := dbMock.NewTxManagerMock(t)
-				mock.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
-					return handler(ctx)
-				})
-
-				return mock
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				return kafkaMocks.NewProducerMock(t)
-			},
-		},
-		{
-			name: "Error Create User in Kafka",
-			args: args{
-				ctx:      ctx,
-				req:      req,
-				password: pass,
-			},
-			want: 0,
-			err:  kafkaErr,
-			userRepositoryMock: func(mc *minimock.Controller) repository.UserRepository {
-				mock := repoMocks.NewUserRepositoryMock(mc)
-				mock.CreateUserMock.Expect(ctx, info, pass).Return(id, nil)
-				return mock
-			},
-			dbMockFunc: func(_ *minimock.Controller) db.TxManager {
-				mock := dbMock.NewTxManagerMock(t)
-				mock.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
-					return handler(ctx)
-				})
-
-				return mock
-			},
-			userCacheMock: func(_ *minimock.Controller) repository.UserCache {
-				return repoMocks.NewUserCacheMock(t)
-			},
-			producerMock: func(_ *minimock.Controller) kafka.Producer {
-				mock := kafkaMocks.NewProducerMock(t)
-				mock.SendMock.Expect("topic_name", strconv.FormatInt(id, 10)).Return(kafkaErr)
-				return mock
-			},
-		},
+	userInfoEmptyName := &model.UserInfo{
+		Name:  "",
+		Email: email,
+		Role:  role,
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			userRepoMock := tt.userRepositoryMock(mc)
-			txManagerMock := tt.dbMockFunc(mc)
-			userCacheMock := tt.userCacheMock(mc)
-			producerMock := tt.producerMock(mc)
-			service := user.NewService(userRepoMock, txManagerMock, userCacheMock, producerMock)
+	userInfoErrorEmail := &model.UserInfo{
+		Name:  name,
+		Email: "aaa aaa",
+		Role:  role,
+	}
 
-			res, err := service.CreateUser(tt.args.ctx, tt.args.req, tt.args.password)
-			require.Equal(t, tt.err, err)
-			require.Equal(t, tt.want, res)
+	userInfoEmptyEmail := &model.UserInfo{
+		Name:  name,
+		Email: "",
+		Role:  role,
+	}
+
+	errorTest := errors.New("test error")
+
+	mc := minimock.NewController(t)
+
+	repo := repoMocks.NewUserRepositoryMock(mc)
+	trans := dbMock.NewTxManagerMock(mc)
+	cache := repoMocks.NewUserCacheMock(mc)
+	kafka := kafkaMocks.NewProducerMock(mc)
+
+	service := user.NewService(repo, trans, cache, kafka)
+
+	t.Run("create user success", func(t *testing.T) {
+		t.Parallel()
+
+		repo.CreateUserMock.Expect(ctx, userInfo, pass).Return(id, nil)
+		trans.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
+			return handler(ctx)
 		})
-	}
+		kafka.SendMock.Expect("topic_name", strconv.FormatInt(id, 10)).Return(nil)
+
+		testID, err := service.CreateUser(ctx, userInfo, pass)
+
+		assert.NoError(t, err)
+		assert.Equal(t, testID, id)
+	})
+
+	t.Run("create user error", func(t *testing.T) {
+		t.Parallel()
+
+		repo.CreateUserMock.Expect(ctx, userInfo, pass).Return(0, errorTest)
+		trans.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
+			return handler(ctx)
+		})
+
+		_, err := service.CreateUser(ctx, userInfo, pass)
+
+		assert.Equal(t, err, errorTest)
+	})
+
+	errEmptyUserInfo := errors.New("Пустые данные при создании пользователя")
+	t.Run("empty user info error", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := service.CreateUser(ctx, nil, pass)
+
+		assert.Equal(t, err, errEmptyUserInfo)
+	})
+
+	errEmptyPassword := errors.New("Пустой пароль")
+	t.Run("empty password error", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := service.CreateUser(ctx, userInfo, "")
+
+		assert.Equal(t, err, errEmptyPassword)
+	})
+
+	errEmptyUserName := errors.New("Пустое имя пользователя")
+	t.Run("empty user name error", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := service.CreateUser(ctx, userInfoEmptyName, pass)
+
+		assert.Equal(t, err, errEmptyUserName)
+	})
+
+	errUserEmail := errors.New("Указан неверный Email")
+	t.Run("user email error", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := service.CreateUser(ctx, userInfoErrorEmail, pass)
+
+		assert.Equal(t, err, errUserEmail)
+	})
+
+	errEmptyUserEmail := errors.New("Пустой email пользователя")
+	t.Run("user email error", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := service.CreateUser(ctx, userInfoEmptyEmail, pass)
+
+		assert.Equal(t, err, errEmptyUserEmail)
+	})
+
+	errorKafkaTest := errors.New("test kafka error")
+	t.Run("kafka create user error", func(t *testing.T) {
+		t.Parallel()
+
+		repo.CreateUserMock.Expect(ctx, userInfo, pass).Return(id, nil)
+		trans.ReadCommitedMock.Set(func(ctx context.Context, handler db.Handler) error {
+			return handler(ctx)
+		})
+		kafka.SendMock.Expect("topic_name", strconv.FormatInt(id, 10)).Return(errorKafkaTest)
+
+		_, err := service.CreateUser(ctx, userInfo, pass)
+
+		assert.Equal(t, err, errorKafkaTest)
+	})
 }

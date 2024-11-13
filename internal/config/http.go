@@ -11,6 +11,7 @@ const (
 	httpPortEnvName = "HTTP_PORT"
 )
 
+// HTTPConfig интерфейс для работы c HTTP сервером
 type HTTPConfig interface {
 	Address() string
 }
@@ -20,6 +21,7 @@ type httpConfig struct {
 	port string
 }
 
+// NewHTTPConfig получение конфигурации для подключения к HTTP серверу
 func NewHTTPConfig() (HTTPConfig, error) {
 	host := os.Getenv(httpHostEnvName)
 	if len(host) == 0 {

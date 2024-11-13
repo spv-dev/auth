@@ -10,6 +10,7 @@ type producer struct {
 	sender sarama.SyncProducer
 }
 
+// NewProducer получение объекта для взаимодействия с Kafka
 func NewProducer(sender sarama.SyncProducer) *producer {
 	return &producer{
 		sender: sender,

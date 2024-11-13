@@ -14,6 +14,7 @@ const (
 	groupIDEnvName = "KAFKA_GROUP_ID"
 )
 
+// KafkaProducerConfig интерфейс для работы с Kafka
 type KafkaProducerConfig interface {
 	Brokers() []string
 	GroupID() string
@@ -25,6 +26,7 @@ type kafkaProducerConfig struct {
 	groupID string
 }
 
+// NewKafkaProducerConfig получение конфигурации для подключения к Kafka
 func NewKafkaProducerConfig() (*kafkaProducerConfig, error) {
 	brokersStr := os.Getenv(brokersEnvName)
 	if len(brokersStr) == 0 {
