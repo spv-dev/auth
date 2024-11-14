@@ -14,6 +14,7 @@ func ToCacheFromModel(user *model.User) cacheModel.UserCache {
 	if user == nil {
 		return cacheModel.UserCache{}
 	}
+
 	var updatedAt int64
 	if user.UpdatedAt != nil {
 		updatedAt = user.UpdatedAt.Unix()
@@ -38,7 +39,9 @@ func ToModelFromCache(user *cacheModel.UserCache) model.User {
 	if err != nil {
 		panic(err)
 	}
+
 	updatedAt := time.Unix(*user.UpdatedAt, 0)
+
 	return model.User{
 		ID: id,
 		Info: model.UserInfo{

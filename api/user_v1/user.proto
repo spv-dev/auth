@@ -3,14 +3,59 @@ syntax="proto3";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/spv-dev/auth/pkg/user_v1;user_v1";
 
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+        title: "Auth API"
+        version: "1.0.0"
+        contact: {
+            name: "Pavel Simonov"
+            email: "psjob@bk.ru"
+        };
+    };
+
+    host: "localhost:8080",
+    schemes: HTTP,
+    schemes: HTTPS,
+    consumes: "application/json",
+    produces: "application/json",
+};
+
 service AuthV1 {
-    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
-    rpc GetUser(GetUserRequest) returns (GetUserResponse);
-    rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.Empty);
-    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
+    // Создаёт нового пользователя
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse) {
+        option (google.api.http) = {
+            post: "/user/v1/create"
+            body: "*"
+        };
+    }
+
+    // Получает пользователя по идентификатору
+    rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+        option (google.api.http) = {
+            get: "/user/v1"
+        };
+    }
+
+    // Изменяет пользователя
+    rpc UpdateUser(UpdateUserRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            patch: "/user/v1"
+            body: "*"
+        };
+    }
+
+    // Удаляет пользователя
+    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty)  {
+        option (google.api.http) = {
+            delete: "/user/v1"
+        };
+    }
 }
 
 enum Roles {
@@ -20,8 +65,11 @@ enum Roles {
 }
 
 message UserInfo {
-    string name = 1;
-    string email = 2;
+    // Имя
+    string name = 1 [(validate.rules).string = {min_len : 3}];
+    // Электронная почта
+    string email = 2 [(validate.rules).string.email = true];
+    // Роль
     Roles role = 3;
 }
 
@@ -39,8 +87,10 @@ message UpdateUserInfo {
 
 message CreateUserRequest {
     UserInfo info = 1;
-    string password = 2;
-    string password_confirm = 3;
+    // Пароль
+    string password = 2 [(validate.rules).string = {min_len : 8}];
+    // Подтверждение пароля
+    string password_confirm = 3 [(validate.rules).string = {min_len : 8}];
 }
 
 message CreateUserResponse {
