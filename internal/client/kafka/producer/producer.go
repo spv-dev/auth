@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/IBM/sarama"
@@ -23,12 +24,9 @@ func (p *producer) Send(topicName string, value string) error {
 		Value: sarama.StringEncoder(value),
 	}
 
-	log.Printf("try to send message to kafka: %#v", msg)
-
 	partition, offset, err := p.sender.SendMessage(msg)
 	if err != nil {
-		log.Printf("failed to send message in Kafka: %v\n", err.Error())
-		return err
+		return fmt.Errorf("failed to send message in Kafka: %v\n", err.Error())
 	}
 
 	log.Printf("message sent to partition %d with offset %d\n", partition, offset)

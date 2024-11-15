@@ -12,6 +12,9 @@ import (
 const (
 	brokersEnvName = "KAFKA_BROKERS"
 	groupIDEnvName = "KAFKA_GROUP_ID"
+
+	saramaRetryMax        = 5
+	saramaReturnSuccesses = true
 )
 
 // KafkaProducerConfig интерфейс для работы с Kafka
@@ -60,8 +63,8 @@ func (cfg *kafkaProducerConfig) Config() *sarama.Config {
 	config := sarama.NewConfig()
 	config.Version = sarama.V2_6_0_0
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 5
-	config.Producer.Return.Successes = true
+	config.Producer.Retry.Max = saramaRetryMax
+	config.Producer.Return.Successes = saramaReturnSuccesses
 
 	return config
 }
