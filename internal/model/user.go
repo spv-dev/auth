@@ -27,3 +27,8 @@ type UpdateUserInfo struct {
 	Name *string          `db:"name,omitempty"`
 	Role *constants.Roles `db:"role,omitempty"`
 }
+
+type TokenUserInfo struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}
