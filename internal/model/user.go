@@ -28,7 +28,8 @@ type UpdateUserInfo struct {
 	Role *constants.Roles `db:"role,omitempty"`
 }
 
-type TokenUserInfo struct {
+// AuthUserInfo модель для авторизации
+type AuthUserInfo struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
 }

@@ -8,7 +8,8 @@ import (
 	"github.com/spv-dev/auth/internal/model"
 )
 
-func GenerateToken(info model.TokenUserInfo, secretKey []byte, duration time.Duration) (string, error) {
+// GenerateToken метод генерирует новый токен
+func GenerateToken(info model.AuthUserInfo, secretKey []byte, duration time.Duration) (string, error) {
 	claims := model.UserClaims{
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(duration).Unix(),
@@ -22,6 +23,7 @@ func GenerateToken(info model.TokenUserInfo, secretKey []byte, duration time.Dur
 	return token.SignedString(secretKey)
 }
 
+// VerifyToken метод проверяет пришедший токен
 func VerifyToken(tokenStr string, secretKey []byte) (*model.UserClaims, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenStr,

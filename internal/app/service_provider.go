@@ -11,11 +11,12 @@ import (
 	"github.com/spv-dev/platform_common/pkg/db/pg"
 	"github.com/spv-dev/platform_common/pkg/db/transaction"
 
+	"github.com/spv-dev/auth/internal/api/access"
+	"github.com/spv-dev/auth/internal/api/auth"
 	"github.com/spv-dev/auth/internal/api/user"
 	"github.com/spv-dev/auth/internal/client/cache"
-	"github.com/spv-dev/auth/internal/client/kafka"
-
 	redisClient "github.com/spv-dev/auth/internal/client/cache/redis"
+	"github.com/spv-dev/auth/internal/client/kafka"
 	kafkaProducer "github.com/spv-dev/auth/internal/client/kafka/producer"
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/repository"
@@ -32,6 +33,7 @@ type serviceProvider struct {
 	httpConfig          config.HTTPConfig
 	swaggerConfig       config.SwaggerConfig
 	kafkaProducerConfig config.KafkaProducerConfig
+	authConfig          config.AuthConfig
 
 	dbClient       db.Client
 	txManager      db.TxManager
@@ -47,6 +49,9 @@ type serviceProvider struct {
 	userService service.UserService
 
 	userServer *user.Server
+
+	authServer   *auth.Server
+	accessServer *access.Server
 }
 
 func newServiceProvider() *serviceProvider {
@@ -118,6 +123,19 @@ func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 	return s.swaggerConfig
 }
 
+// AuthConfig получение конфигурации подключения Auth
+func (s *serviceProvider) AuthConfig() config.AuthConfig {
+	if s.authConfig == nil {
+		cfg, err := config.NewAuthConfig()
+		if err != nil {
+			log.Fatalf("failed to get auth config: %v", err)
+		}
+
+		s.authConfig = cfg
+	}
+	return s.authConfig
+}
+
 func (s *serviceProvider) KafkaProducerConfig() config.KafkaProducerConfig {
 	if s.kafkaProducerConfig == nil {
 		cfg, err := config.NewKafkaProducerConfig()
@@ -168,7 +186,7 @@ func (s *serviceProvider) UserRepository(ctx context.Context) repository.UserRep
 	return s.userRepository
 }
 
-// UserService получение объекта доступа к сервисному слою
+// RedisPool получение объекта доступа к сервисному слою
 func (s *serviceProvider) RedisPool() *redis.Pool {
 	if s.redisPool == nil {
 		s.redisPool = &redis.Pool{
@@ -222,6 +240,24 @@ func (s *serviceProvider) UserServer(ctx context.Context) *user.Server {
 	}
 
 	return s.userServer
+}
+
+// AuthServer получение объекта сервиса
+func (s *serviceProvider) AuthServer(_ context.Context) *auth.Server {
+	if s.authServer == nil {
+		s.authServer = auth.NewServer(s.AuthConfig())
+	}
+
+	return s.authServer
+}
+
+// AuthServer получение объекта сервиса
+func (s *serviceProvider) AccessServer(_ context.Context) *access.Server {
+	if s.accessServer == nil {
+		s.accessServer = access.NewServer()
+	}
+
+	return s.accessServer
 }
 
 func (s *serviceProvider) Producer() kafka.Producer {

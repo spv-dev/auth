@@ -2,33 +2,51 @@ package config
 
 import (
 	"errors"
+	"net"
 	"os"
 	"strconv"
 	"time"
 )
 
 const (
-	refreshTokenSecretKeyEnvName  = "REFRESH_TOKEN_SECRET"
-	refreshTokenExpirationEnvName = "REFRESH_TOKEN_EXPIRATION"
-	accessTokenSecretKeyEnvName   = "ACCESS_TOKEN_SECRET"
-	accessTokenExpirationEnvName  = "ACCESS_TOKEN_EXPIRATION"
+	authHostEnvName               = "AUTH_HOST"
+	authPortEnvName               = "AUTH_PORT"
+	refreshTokenSecretKeyEnvName  = "REFRESH_TOKEN_SECRET"     // #nosec G101
+	refreshTokenExpirationEnvName = "REFRESH_TOKEN_EXPIRATION" // #nosec G101
+	accessTokenSecretKeyEnvName   = "ACCESS_TOKEN_SECRET"      // #nosec G101
+	accessTokenExpirationEnvName  = "ACCESS_TOKEN_EXPIRATION"  // #nosec G101
 )
 
-type TokenConfig interface {
+// AuthConfig интерфейс для конфигурации сервиса авторизации
+type AuthConfig interface {
+	Address() string
 	GetRefreshSecret() string
 	GetRefreshExpiration() time.Duration
 	GetAccessSecret() string
 	GetAccessExpiration() time.Duration
 }
 
-type tokenConfig struct {
+type authConfig struct {
+	host                   string
+	port                   string
 	refreshTokenSecretKey  string
 	refreshTokenExpiration time.Duration
 	accessTokenSecretKey   string
 	accessTokenExpiration  time.Duration
 }
 
-func NewTokenConfig() (*tokenConfig, error) {
+// NewAuthConfig получение новой конфигурации для сервиса авторизации
+func NewAuthConfig() (*authConfig, error) {
+	host := os.Getenv(authHostEnvName)
+	if len(host) == 0 {
+		return nil, errors.New("auth host not found")
+	}
+
+	port := os.Getenv(authPortEnvName)
+	if len(port) == 0 {
+		return nil, errors.New("auth port not found")
+	}
+
 	refreshTokenSecretKey := os.Getenv(refreshTokenSecretKeyEnvName)
 	if len(refreshTokenSecretKey) == 0 {
 		return nil, errors.New("refresh token secret not found")
@@ -59,7 +77,9 @@ func NewTokenConfig() (*tokenConfig, error) {
 		return nil, errors.New("failed to parse connection timeout")
 	}
 
-	return &tokenConfig{
+	return &authConfig{
+		host:                   host,
+		port:                   port,
 		refreshTokenSecretKey:  refreshTokenSecretKey,
 		refreshTokenExpiration: time.Duration(refreshTokenExpiration * int64(time.Minute)),
 		accessTokenSecretKey:   accessTokenSecretKey,
@@ -67,18 +87,23 @@ func NewTokenConfig() (*tokenConfig, error) {
 	}, nil
 }
 
-func (cfg *tokenConfig) GetRefreshSecret() string {
+func (cfg *authConfig) GetRefreshSecret() string {
 	return cfg.refreshTokenSecretKey
 }
 
-func (cfg *tokenConfig) GetRefreshExpiration() time.Duration {
+func (cfg *authConfig) GetRefreshExpiration() time.Duration {
 	return cfg.refreshTokenExpiration
 }
 
-func (cfg *tokenConfig) GetAccessSecret() string {
+func (cfg *authConfig) GetAccessSecret() string {
 	return cfg.accessTokenSecretKey
 }
 
-func (cfg *tokenConfig) GetAccessExpiration() time.Duration {
+func (cfg *authConfig) GetAccessExpiration() time.Duration {
 	return cfg.accessTokenExpiration
+}
+
+// Address возвращает адрес сервиса
+func (cfg *authConfig) Address() string {
+	return net.JoinHostPort(cfg.host, cfg.port)
 }

@@ -11,18 +11,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Server) GetRefreshToken(ctx context.Context, req *authDesc.GetRefreshTokenRequest) (*authDesc.GetRefreshTokenResponse, error) {
-	claims, err := utils.VerifyToken(req.GetRefreshToken(), []byte(refreshTokenSecretKey))
+// GetRefreshToken метод для получения refresh token
+func (s *Server) GetRefreshToken(_ context.Context, req *authDesc.GetRefreshTokenRequest) (*authDesc.GetRefreshTokenResponse, error) {
+	claims, err := utils.VerifyToken(req.GetRefreshToken(), []byte(s.config.GetRefreshSecret()))
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "invalid refresh token")
 	}
 
-	refreshToken, err := utils.GenerateToken(model.TokenUserInfo{
+	refreshToken, err := utils.GenerateToken(model.AuthUserInfo{
 		Username: claims.Username,
 		Role:     "ADMIN",
 	},
-		[]byte(refreshTokenSecretKey),
-		refreshTokenExpiration,
+		[]byte(s.config.GetRefreshSecret()),
+		s.config.GetRefreshExpiration(),
 	)
 	if err != nil {
 		return nil, errors.New("failed to generate token")

@@ -26,7 +26,7 @@ func (p *producer) Send(topicName string, value string) error {
 
 	partition, offset, err := p.sender.SendMessage(msg)
 	if err != nil {
-		return fmt.Errorf("failed to send message in Kafka: %v\n", err.Error())
+		return fmt.Errorf("failed to send message in Kafka: %v", err.Error())
 	}
 
 	log.Printf("message sent to partition %d with offset %d\n", partition, offset)

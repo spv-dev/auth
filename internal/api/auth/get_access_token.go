@@ -11,18 +11,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Server) GetAccessToken(ctx context.Context, req *authDesc.GetAccessTokenRequest) (*authDesc.GetAccessTokenResponse, error) {
-	claims, err := utils.VerifyToken(req.GetRefreshToken(), []byte(refreshTokenSecretKey))
+// GetAccessToken метод для получения access token
+func (s *Server) GetAccessToken(_ context.Context, req *authDesc.GetAccessTokenRequest) (*authDesc.GetAccessTokenResponse, error) {
+	claims, err := utils.VerifyToken(req.GetRefreshToken(), []byte(s.config.GetRefreshSecret()))
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "invalid refresh token")
 	}
 
-	accessToken, err := utils.GenerateToken(model.TokenUserInfo{
+	accessToken, err := utils.GenerateToken(model.AuthUserInfo{
 		Username: claims.Username,
 		Role:     "ADMIN",
 	},
-		[]byte(accessTokenSecretKey),
-		accessTokenExpiration,
+		[]byte(s.config.GetAccessSecret()),
+		s.config.GetAccessExpiration(),
 	)
 	if err != nil {
 		return nil, errors.New("failed to generate token")

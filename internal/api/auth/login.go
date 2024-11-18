@@ -9,13 +9,14 @@ import (
 	authDesc "github.com/spv-dev/auth/pkg/auth_v1"
 )
 
-func (s *Server) Login(ctx context.Context, req *authDesc.LoginRequest) (*authDesc.LoginResponse, error) {
-	refreshToken, err := utils.GenerateToken(model.TokenUserInfo{
+// Login метод для входа в систему
+func (s *Server) Login(_ context.Context, req *authDesc.LoginRequest) (*authDesc.LoginResponse, error) {
+	refreshToken, err := utils.GenerateToken(model.AuthUserInfo{
 		Username: req.GetUsername(),
 		Role:     "ADMIN",
 	},
-		[]byte(refreshTokenSecretKey),
-		refreshTokenExpiration,
+		[]byte(s.config.GetRefreshSecret()),
+		s.config.GetRefreshExpiration(),
 	)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
