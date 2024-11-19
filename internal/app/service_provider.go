@@ -254,7 +254,7 @@ func (s *serviceProvider) AuthServer(_ context.Context) *auth.Server {
 // AuthServer получение объекта сервиса
 func (s *serviceProvider) AccessServer(_ context.Context) *access.Server {
 	if s.accessServer == nil {
-		s.accessServer = access.NewServer()
+		s.accessServer = access.NewServer(s.AuthConfig())
 	}
 
 	return s.accessServer
