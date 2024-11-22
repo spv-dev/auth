@@ -27,3 +27,9 @@ type UpdateUserInfo struct {
 	Name *string          `db:"name,omitempty"`
 	Role *constants.Roles `db:"role,omitempty"`
 }
+
+// AuthUserInfo модель для авторизации
+type AuthUserInfo struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}

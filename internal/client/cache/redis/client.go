@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -160,10 +161,8 @@ func (c *client) getConnect(ctx context.Context) (redis.Conn, error) {
 
 	conn, err := c.pool.GetContext(getConnectTimoutCtx)
 	if err != nil {
-		log.Printf("failed to get redis connection: %v", err)
-
 		_ = conn.Close()
-		return nil, err
+		return nil, fmt.Errorf("failed to get redis connection: %v", err)
 	}
 
 	return conn, nil

@@ -18,6 +18,8 @@ import (
 
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/interceptor"
+	descAccess "github.com/spv-dev/auth/pkg/access_v1"
+	descAuth "github.com/spv-dev/auth/pkg/auth_v1"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
 
 	// нужно чтобы подтянуть данные
@@ -30,6 +32,7 @@ type App struct {
 	grpcServer      *grpc.Server
 	httpServer      *http.Server
 	swaggerServer   *http.Server
+	authServer      *grpc.Server
 }
 
 // NewApp инициализизует зависимости и создаёт экземпляр структуры приложения
@@ -52,7 +55,7 @@ func (a *App) Run() error {
 	}()
 
 	wg := sync.WaitGroup{}
-	wg.Add(3)
+	wg.Add(4)
 
 	go func() {
 		defer wg.Done()
@@ -78,6 +81,14 @@ func (a *App) Run() error {
 		}
 	}()
 
+	go func() {
+		defer wg.Done()
+		err := a.runAuthServer()
+		if err != nil {
+			log.Fatalf("failed to run Auth server")
+		}
+	}()
+
 	wg.Wait()
 
 	return nil
@@ -90,6 +101,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initGRPCServer,
 		a.initHTTPServer,
 		a.initSwaggerServer,
+		a.initAuthServer,
 	}
 
 	for _, f := range inits {
@@ -173,6 +185,16 @@ func (a *App) initSwaggerServer(_ context.Context) error {
 	return nil
 }
 
+func (a *App) initAuthServer(ctx context.Context) error {
+	a.authServer = grpc.NewServer()
+
+	reflection.Register(a.authServer)
+	descAuth.RegisterAuthV1Server(a.authServer, a.serviceProvider.AuthServer(ctx))
+	descAccess.RegisterAccessV1Server(a.authServer, a.serviceProvider.AccessServer(ctx))
+
+	return nil
+}
+
 func (a *App) runGRPCServer() error {
 	log.Printf("GRPC server is runnign on %v", a.serviceProvider.GRPCConfig().Address())
 
@@ -183,6 +205,22 @@ func (a *App) runGRPCServer() error {
 	}
 
 	err = a.grpcServer.Serve(list)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *App) runAuthServer() error {
+	log.Printf("Auth server is runnign on %v", a.serviceProvider.AuthConfig().Address())
+
+	list, err := net.Listen("tcp", a.serviceProvider.AuthConfig().Address())
+
+	if err != nil {
+		return err
+	}
+
+	err = a.authServer.Serve(list)
 	if err != nil {
 		return err
 	}
