@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net"
 	"os"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 const (
@@ -25,12 +27,12 @@ type httpConfig struct {
 func NewHTTPConfig() (HTTPConfig, error) {
 	host := os.Getenv(httpHostEnvName)
 	if len(host) == 0 {
-		return nil, errors.New("http host not found")
+		return nil, errors.New(serviceerror.HTTPHostNotFound)
 	}
 
 	port := os.Getenv(httpPortEnvName)
 	if len(port) == 0 {
-		return nil, errors.New("http port not found")
+		return nil, errors.New(serviceerror.HTTPPortNotFound)
 	}
 
 	return &httpConfig{

@@ -18,6 +18,7 @@ import (
 
 	"github.com/spv-dev/auth/internal/config"
 	"github.com/spv-dev/auth/internal/interceptor"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 	descAccess "github.com/spv-dev/auth/pkg/access_v1"
 	descAuth "github.com/spv-dev/auth/pkg/auth_v1"
 	desc "github.com/spv-dev/auth/pkg/user_v1"
@@ -61,7 +62,7 @@ func (a *App) Run() error {
 		defer wg.Done()
 		err := a.runGRPCServer()
 		if err != nil {
-			log.Fatalf("failed to run GRPC server")
+			log.Fatalf(serviceerror.FailedToRunGRPCServer)
 		}
 	}()
 
@@ -69,7 +70,7 @@ func (a *App) Run() error {
 		defer wg.Done()
 		err := a.runHTTPServer()
 		if err != nil {
-			log.Fatalf("failed to run HTTP server")
+			log.Fatalf(serviceerror.FailedToRunHTTPServer)
 		}
 	}()
 
@@ -77,7 +78,7 @@ func (a *App) Run() error {
 		defer wg.Done()
 		err := a.runSwaggerServer()
 		if err != nil {
-			log.Fatalf("failed to run Swagger server")
+			log.Fatalf(serviceerror.FailedToRunSwaggerServer)
 		}
 	}()
 
@@ -85,7 +86,7 @@ func (a *App) Run() error {
 		defer wg.Done()
 		err := a.runAuthServer()
 		if err != nil {
-			log.Fatalf("failed to run Auth server")
+			log.Fatalf(serviceerror.FailedToRunAuthServer)
 		}
 	}()
 
@@ -268,7 +269,7 @@ func serveSwaggerFile(path string) http.HandlerFunc {
 		}
 		defer func() {
 			if err := file.Close(); err != nil {
-				log.Fatalf("failed to close swagger file: %v", err)
+				log.Fatalf(serviceerror.FailedToCloseSwaggerFile, err)
 			}
 		}()
 

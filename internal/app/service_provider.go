@@ -24,6 +24,7 @@ import (
 	userRepository "github.com/spv-dev/auth/internal/repository/user"
 	"github.com/spv-dev/auth/internal/service"
 	userService "github.com/spv-dev/auth/internal/service/user"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 type serviceProvider struct {
@@ -63,7 +64,7 @@ func (s *serviceProvider) PGConfig() config.PGConfig {
 	if s.pgConfig == nil {
 		cfg, err := config.NewPGConfig()
 		if err != nil {
-			log.Fatalf("failed to get pg config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetPGConfig, err)
 		}
 
 		s.pgConfig = cfg
@@ -76,7 +77,7 @@ func (s *serviceProvider) GRPCConfig() config.GRPCConfig {
 	if s.grpcConfig == nil {
 		cfg, err := config.NewGRPCConfig()
 		if err != nil {
-			log.Fatalf("failed to get grpc config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetGRPCConfig, err)
 		}
 
 		s.grpcConfig = cfg
@@ -89,7 +90,7 @@ func (s *serviceProvider) HTTPConfig() config.HTTPConfig {
 	if s.httpConfig == nil {
 		cfg, err := config.NewHTTPConfig()
 		if err != nil {
-			log.Fatalf("failed to get http config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetHTTPConfig, err)
 		}
 
 		s.httpConfig = cfg
@@ -102,7 +103,7 @@ func (s *serviceProvider) RedisConfig() config.RedisConfig {
 	if s.redisConfig == nil {
 		cfg, err := config.NewRedisConfig()
 		if err != nil {
-			log.Fatalf("failed to get redis config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetRedisConfig, err)
 		}
 
 		s.redisConfig = cfg
@@ -115,7 +116,7 @@ func (s *serviceProvider) SwaggerConfig() config.SwaggerConfig {
 	if s.swaggerConfig == nil {
 		cfg, err := config.NewSwaggerConfig()
 		if err != nil {
-			log.Fatalf("failed to get swagger config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetSwaggerConfig, err)
 		}
 
 		s.swaggerConfig = cfg
@@ -128,7 +129,7 @@ func (s *serviceProvider) AuthConfig() config.AuthConfig {
 	if s.authConfig == nil {
 		cfg, err := config.NewAuthConfig()
 		if err != nil {
-			log.Fatalf("failed to get auth config: %v", err)
+			log.Fatalf(serviceerror.FailedToGetAuthConfig, err)
 		}
 
 		s.authConfig = cfg
@@ -140,7 +141,7 @@ func (s *serviceProvider) KafkaProducerConfig() config.KafkaProducerConfig {
 	if s.kafkaProducerConfig == nil {
 		cfg, err := config.NewKafkaProducerConfig()
 		if err != nil {
-			log.Fatalf("failed to get kafka producer config: %s", err.Error())
+			log.Fatalf(serviceerror.FailedToGetKafkaConfig, err.Error())
 		}
 
 		s.kafkaProducerConfig = cfg
@@ -154,12 +155,12 @@ func (s *serviceProvider) DBClient(ctx context.Context) db.Client {
 	if s.dbClient == nil {
 		cl, err := pg.New(ctx, s.PGConfig().DSN())
 		if err != nil {
-			log.Fatalf("failed to connect to database : %v", err)
+			log.Fatalf(serviceerror.FailedToConnectToDatabase, err)
 		}
 
 		err = cl.DB().Ping(ctx)
 		if err != nil {
-			log.Fatalf("ping error: %v", err)
+			log.Fatalf(serviceerror.PingError, err)
 		}
 		closer.Add(cl.Close)
 
@@ -278,7 +279,7 @@ func (s *serviceProvider) Sender() sarama.SyncProducer {
 			s.KafkaProducerConfig().Config(),
 		)
 		if err != nil {
-			log.Fatalf("failed to create kafka sender: %v", err)
+			log.Fatalf(serviceerror.FailedToCreateKafkaSender, err)
 		}
 
 		s.sender = sender

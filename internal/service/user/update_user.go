@@ -2,16 +2,17 @@ package user
 
 import (
 	"context"
-	"errors"
+	"fmt"
 
 	"github.com/spv-dev/auth/internal/model"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 	"github.com/spv-dev/auth/internal/validator"
 )
 
 // UpdateUser изменение данных о пользователе
 func (s *serv) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserInfo) error {
 	if info == nil {
-		return errors.New("Пустые данные при изменении пользователя")
+		return fmt.Errorf(serviceerror.EmptyDataWhenUpdateUser)
 	}
 
 	// проверки

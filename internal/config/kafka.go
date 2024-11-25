@@ -2,11 +2,12 @@ package config
 
 import (
 	"errors"
-	"log"
 	"os"
 	"strings"
 
 	"github.com/IBM/sarama"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 const (
@@ -33,17 +34,15 @@ type kafkaProducerConfig struct {
 func NewKafkaProducerConfig() (*kafkaProducerConfig, error) {
 	brokersStr := os.Getenv(brokersEnvName)
 	if len(brokersStr) == 0 {
-		return nil, errors.New("kafka brokers not found")
+		return nil, errors.New(serviceerror.KafkaBrokersNotFound)
 	}
 
 	brokers := strings.Split(brokersStr, ",")
 
 	groupID := os.Getenv(groupIDEnvName)
 	if len(groupID) == 0 {
-		return nil, errors.New("kafka group id not found")
+		return nil, errors.New(serviceerror.KafkaGroupIDNotFound)
 	}
-
-	log.Printf("get kafka config")
 
 	return &kafkaProducerConfig{
 		brokers: brokers,

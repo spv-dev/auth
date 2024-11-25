@@ -15,6 +15,7 @@ import (
 	model "github.com/spv-dev/auth/internal/model"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 func TestUpdateUser(t *testing.T) {
@@ -66,7 +67,7 @@ func TestUpdateUser(t *testing.T) {
 		assert.ErrorIs(t, err, repoError)
 	})
 
-	emptyErr := errors.New("Пустые данные при изменении пользователя")
+	emptyErr := errors.New(serviceerror.EmptyDataWhenUpdateUser)
 	t.Run("update user error empty data", func(t *testing.T) {
 		//t.Parallel()
 

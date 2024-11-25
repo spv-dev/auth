@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	sq "github.com/Masterminds/squirrel"
@@ -17,7 +16,7 @@ func (r *repo) DeleteUser(ctx context.Context, id int64) error {
 
 	query, args, err := builder.ToSql()
 	if err != nil {
-		return fmt.Errorf("failed to build query: %v", err)
+		return err
 	}
 
 	q := db.Query{
@@ -26,7 +25,7 @@ func (r *repo) DeleteUser(ctx context.Context, id int64) error {
 	}
 	res, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
-		return fmt.Errorf("failed to delete user: %v", err)
+		return err
 	}
 
 	log.Printf("deleted users count: %v", res)

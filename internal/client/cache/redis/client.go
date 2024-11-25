@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/gomodule/redigo/redis"
+
 	"github.com/spv-dev/auth/internal/client/cache"
 	"github.com/spv-dev/auth/internal/config"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 var _ cache.RedisClient = (*client)(nil)
@@ -143,7 +145,7 @@ func (c *client) execute(ctx context.Context, handler handler) error {
 	defer func() {
 		err = conn.Close()
 		if err != nil {
-			log.Printf("failed to close redis connection: %v", err)
+			log.Printf(serviceerror.FailedToCloseRedisConnection, err)
 		}
 	}()
 
@@ -162,7 +164,7 @@ func (c *client) getConnect(ctx context.Context) (redis.Conn, error) {
 	conn, err := c.pool.GetContext(getConnectTimoutCtx)
 	if err != nil {
 		_ = conn.Close()
-		return nil, fmt.Errorf("failed to get redis connection: %v", err)
+		return nil, fmt.Errorf(serviceerror.FailedToGetRedisConnection, err)
 	}
 
 	return conn, nil

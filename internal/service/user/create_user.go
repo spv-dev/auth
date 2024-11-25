@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	"github.com/spv-dev/auth/internal/model"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 	"github.com/spv-dev/auth/internal/validator"
 )
 
 // CreateUser проверяет пользователя и отправляет на создание в слой БД
 func (s *serv) CreateUser(ctx context.Context, info *model.UserInfo, password string) (int64, error) {
 	if info == nil {
-		return 0, fmt.Errorf("Пустые данные при создании пользователя")
+		return 0, fmt.Errorf(serviceerror.EmptyDataWhenCreateUser)
 	}
 
 	// проверки

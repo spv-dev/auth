@@ -10,4 +10,7 @@ const (
 	RolesADMIN Roles = 1
 	// RolesUSER пользователь
 	RolesUSER Roles = 2
+
+	// ExampleRole Роль для примера
+	ExampleRole = "ADMIN"
 )

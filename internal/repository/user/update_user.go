@@ -39,7 +39,7 @@ func (r *repo) UpdateUser(ctx context.Context, id int64, info *model.UpdateUserI
 
 	res, err := r.db.DB().ExecContext(ctx, q, args...)
 	if err != nil {
-		return fmt.Errorf("failed to update user: %v", err)
+		return err
 	}
 
 	log.Printf("updated users count: %v", res)

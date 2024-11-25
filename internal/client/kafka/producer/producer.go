@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/IBM/sarama"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 type producer struct {
@@ -26,7 +28,7 @@ func (p *producer) Send(topicName string, value string) error {
 
 	partition, offset, err := p.sender.SendMessage(msg)
 	if err != nil {
-		return fmt.Errorf("failed to send message in Kafka: %v", err.Error())
+		return fmt.Errorf(serviceerror.FailedToSendMessageInKafka, err.Error())
 	}
 
 	log.Printf("message sent to partition %d with offset %d\n", partition, offset)
