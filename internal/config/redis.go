@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 const (
@@ -38,42 +40,42 @@ type redisConfig struct {
 func NewRedisConfig() (*redisConfig, error) {
 	host := os.Getenv(redisHostEnvName)
 	if len(host) == 0 {
-		return nil, errors.New("redis host not found")
+		return nil, errors.New(serviceerror.RedisHostNotFound)
 	}
 
 	port := os.Getenv(redisPortEnvName)
 	if len(port) == 0 {
-		return nil, errors.New("redis port not found")
+		return nil, errors.New(serviceerror.RedisPortNotFound)
 	}
 
 	connectionTimeoutStr := os.Getenv(redisConnectionTimeoutEnvName)
 	if len(connectionTimeoutStr) == 0 {
-		return nil, errors.New("redis connection timeout not found")
+		return nil, errors.New(serviceerror.RedisConnectionTimeoutNotFound)
 	}
 
 	connectionTimeout, err := strconv.ParseInt(connectionTimeoutStr, 10, 64)
 	if err != nil {
-		return nil, errors.New("failed to parse connection timeout")
+		return nil, errors.New(serviceerror.FailedToParseConnectionTimeout)
 	}
 
 	maxIdleStr := os.Getenv(redisMaxIdleEnvName)
 	if len(connectionTimeoutStr) == 0 {
-		return nil, errors.New("redis max idle not found")
+		return nil, errors.New(serviceerror.RedisMaxIdleNotFound)
 	}
 
 	maxIdle, err := strconv.Atoi(maxIdleStr)
 	if err != nil {
-		return nil, errors.New("failed to parse max idle")
+		return nil, errors.New(serviceerror.FailedToParseMaxIdle)
 	}
 
 	idleTimeoutStr := os.Getenv(redisIdleTimeoutEnvName)
 	if len(idleTimeoutStr) == 0 {
-		return nil, errors.New("redis idle timeout not found")
+		return nil, errors.New(serviceerror.RedisIdleTimeoutNotFound)
 	}
 
 	idleTimeout, err := strconv.ParseInt(idleTimeoutStr, 10, 64)
 	if err != nil {
-		return nil, errors.New("failed to parse idle timeout")
+		return nil, errors.New(serviceerror.FailedToParseIdleTimeout)
 	}
 
 	return &redisConfig{

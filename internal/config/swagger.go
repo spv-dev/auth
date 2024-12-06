@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net"
 	"os"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 const (
@@ -25,12 +27,12 @@ type swaggerConfig struct {
 func NewSwaggerConfig() (SwaggerConfig, error) {
 	host := os.Getenv(swaggerHostEnvName)
 	if len(host) == 0 {
-		return nil, errors.New("swagger host not found")
+		return nil, errors.New(serviceerror.SwaggerHostNotFound)
 	}
 
 	port := os.Getenv(swaggerPortEnvName)
 	if len(port) == 0 {
-		return nil, errors.New("swagger port not found")
+		return nil, errors.New(serviceerror.SwaggerPortNotFound)
 	}
 
 	return &swaggerConfig{

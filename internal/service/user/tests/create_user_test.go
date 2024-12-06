@@ -16,6 +16,7 @@ import (
 	model "github.com/spv-dev/auth/internal/model"
 	repoMocks "github.com/spv-dev/auth/internal/repository/mocks"
 	"github.com/spv-dev/auth/internal/service/user"
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 	"github.com/spv-dev/platform_common/pkg/db"
 )
 
@@ -92,7 +93,7 @@ func TestCreateUser(t *testing.T) {
 		assert.Equal(t, err, errorTest)
 	})
 
-	errEmptyUserInfo := errors.New("Пустые данные при создании пользователя")
+	errEmptyUserInfo := errors.New(serviceerror.EmptyDataWhenCreateUser)
 	t.Run("empty user info error", func(t *testing.T) {
 		t.Parallel()
 

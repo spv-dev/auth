@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	serviceerror "github.com/spv-dev/auth/internal/service_error"
 )
 
 const (
@@ -39,42 +41,42 @@ type authConfig struct {
 func NewAuthConfig() (*authConfig, error) {
 	host := os.Getenv(authHostEnvName)
 	if len(host) == 0 {
-		return nil, errors.New("auth host not found")
+		return nil, errors.New(serviceerror.AuthHostNotFound)
 	}
 
 	port := os.Getenv(authPortEnvName)
 	if len(port) == 0 {
-		return nil, errors.New("auth port not found")
+		return nil, errors.New(serviceerror.AuthPortNotFound)
 	}
 
 	refreshTokenSecretKey := os.Getenv(refreshTokenSecretKeyEnvName)
 	if len(refreshTokenSecretKey) == 0 {
-		return nil, errors.New("refresh token secret not found")
+		return nil, errors.New(serviceerror.RefreshTokenSecretNotFound)
 	}
 
 	refreshTokenExpirationStr := os.Getenv(refreshTokenExpirationEnvName)
 	if len(refreshTokenExpirationStr) == 0 {
-		return nil, errors.New("refresh token expiration not found")
+		return nil, errors.New(serviceerror.RefreshTokenExpirationNotFound)
 	}
 
 	refreshTokenExpiration, err := strconv.ParseInt(refreshTokenExpirationStr, 10, 64)
 	if err != nil {
-		return nil, errors.New("failed to parse refresh token expiration")
+		return nil, errors.New(serviceerror.FailedToParseRefreshTokenExpiration)
 	}
 
 	accessTokenSecretKey := os.Getenv(accessTokenSecretKeyEnvName)
 	if len(accessTokenSecretKey) == 0 {
-		return nil, errors.New("access token secret not found")
+		return nil, errors.New(serviceerror.AccessTokenSecretNotFound)
 	}
 
 	accessTokenExpirationStr := os.Getenv(accessTokenExpirationEnvName)
 	if len(accessTokenExpirationStr) == 0 {
-		return nil, errors.New("access token expiration not found")
+		return nil, errors.New(serviceerror.AccessTokenExpirationNotFound)
 	}
 
 	accessTokenExpiration, err := strconv.ParseInt(accessTokenExpirationStr, 10, 64)
 	if err != nil {
-		return nil, errors.New("failed to parse connection timeout")
+		return nil, errors.New(serviceerror.FailedToParseAccessTokenExpiration)
 	}
 
 	return &authConfig{
